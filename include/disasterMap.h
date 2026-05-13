@@ -1,11 +1,15 @@
 #pragma once
 
+#include "config.h"
+
 #include <vector>
 #include <string>
 #include <sstream>
 #include <istream>
 #include <fstream>
 #include <algorithm>
+#include <iostream>
+#include <math.h>
 
 using namespace std;
 
@@ -20,6 +24,7 @@ class DisasterMap{
 
 private:
     vector<MapCell> disasterMap;
+    const config& cfg;
     double normalize(double x,double xmin,double xmax){return (x-xmin) / (xmax-xmin);};
 
     std::string trim(const std::string& str) {
@@ -42,8 +47,10 @@ private:
     }
 
 public:
+    DisasterMap(const config&);
     void loadFromCsv(const string&);
     void updateMap();
+    void vecNormalize();
     const vector<MapCell>& getDisasterMap() const {return disasterMap;};
     
 

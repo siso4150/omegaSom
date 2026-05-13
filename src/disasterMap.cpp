@@ -1,8 +1,15 @@
 #include "disasterMap.h"
 
+DisasterMap::DisasterMap(const config& cfg) : cfg(cfg){
+
+}
+
 void DisasterMap::loadFromCsv(const string& filePath){
     ifstream file(filePath);
-    if (!file.is_open()) return;
+    if (!file.is_open()){
+        cout << filePath << "を読み込めませんでした" << endl;
+        abort();
+    }
 
     disasterMap.clear();
 
@@ -42,11 +49,27 @@ void DisasterMap::loadFromCsv(const string& filePath){
 
         disasterMap.push_back(cell);
     }
-    
+
+    vecNormalize();
 }
 
 void DisasterMap::updateMap(){
 
+}
+
+void DisasterMap::vecNormalize(){
+
+    for(int n = 0; n < cfg.dimensionNum; n++){
+        double max = 0;
+        double min = 1e9;
+        for(int i = 0; i < disasterMap.size();i++){
+            max = std::max(disasterMap[i].vec[n],max);
+            min = std::min(disasterMap[i].vec[n],min);
+        }
+        for(int i = 0; i < disasterMap.size();i++){
+            disasterMap[i].vec[n] = normalize(disasterMap[i].vec[n],min,max);
+        }
+    }
 }
 
 

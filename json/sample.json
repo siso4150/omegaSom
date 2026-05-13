@@ -3,13 +3,15 @@
     "mapRow" : 79,
     "mapCol" : 155,
     
-    "somInitAlpha" : 10,
-    "somFinAlpha" : 1,
+    "somInitAlpha" : 0.1,
+    "somFinAlpha" : 0.01,
     "somInitNbRadius" : 70,
-    "somFinNbRadius" : 7,
-    "somIterMax" : 50,
+    "somFinNbRadius" : 10,
+    "somIterMax" : 100,
     "somWindowSize" : 10,
 
-    "csvDirPath" : "../../csv/"
+    "somBeta" : 1.5,
+
+    "csvDirPath" : "/home/sakai/cppfile/omegaSOM/csv/"
     
 }

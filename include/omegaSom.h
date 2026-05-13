@@ -7,6 +7,7 @@
 #include <random>
 #include <math.h>
 
+
 using namespace std;
 
 struct Neuron{

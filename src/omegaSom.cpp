@@ -28,8 +28,14 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
     omega.assign(cfg.dimensionNum,(double)1 / cfg.dimensionNum);
     density.assign(cfg.dimensionNum,0);
 
-    omegaHistery.assign(cfg.dimensionNum,vector<double>());
-    runningSum.assign(cfg.somWindowSize,0);
+    cout << "0世代目" << endl;
+    for(auto val : omega) cout << val << " ";
+    cout << endl;
+
+    for(int n = 0; n < cfg.dimensionNum; n++){
+        omegaHistery.push_back(vector<double>(cfg.somWindowSize,0.0));
+    }
+    runningSum.assign(cfg.dimensionNum,0);
 
     alpha = cfg.somInitAlpha;
     nbRadius = cfg.somInitNbRadius;
@@ -42,6 +48,7 @@ void OmegaSom::onlineLearn(int t){
     uniform_int_distribution<int> dist(0,disasterMap.size()-1);
     int inputIdx = dist(gen);
     int BMUIdx = findBMU(inputIdx); //BMU探索
+
     onlineAdapt(BMUIdx,inputIdx); //プロトタイプベクトル（参照ベクトル）更新
     updateOmega(BMUIdx,inputIdx,t); //次元重み更新
     updateAlphaNb(t); //学習率、近傍半径の更新
@@ -91,7 +98,12 @@ void OmegaSom::onlineAdapt(int BMUIdx,int inputVec){
 double OmegaSom::neighborhoodFunction(int BMUIdx,int pVecIdx){
     double numeretor = (somMap[BMUIdx].x - somMap[pVecIdx].x) * (somMap[BMUIdx].x - somMap[pVecIdx].x) + (somMap[BMUIdx].y - somMap[pVecIdx].y) * (somMap[BMUIdx].y - somMap[pVecIdx].y);
     double denominator = 2 * nbRadius * nbRadius;
-    return exp(numeretor / denominator);
+    double ret = exp(-1 * numeretor / denominator);
+    if(isnan(ret)){
+        cerr << "nan値検出" << endl;
+        abort();
+    }
+    return ret;
 }
 
 void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
@@ -105,6 +117,16 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
             density[n] += nb * ((disasterMap[inputIdx].vec[n] - somMap[k].weightVec[n]) * (disasterMap[inputIdx].vec[n] - somMap[k].weightVec[n]));
         }
     }
+
+    cout << "Dn : ";
+    for(auto val : density) {
+        cout << val << " ";
+        if(isnan(val)){
+        cerr << "nan値検出" << endl;
+        abort();
+            }
+    }
+    cout << endl;
 
     //omega_nを求める
     for(int n = 0; n < cfg.dimensionNum; n++){
@@ -125,6 +147,15 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         }
         omega[n] = runningSum[n] / cfg.somWindowSize;
     }
+    cout << "omegaHistery : ";
+    for(int n = 0; n < cfg.dimensionNum; n++) {
+        cout << omegaHistery[n][t % cfg.somWindowSize] << " ";
+        if(isnan(omegaHistery[n][t % cfg.somWindowSize])){
+        cerr << "nan値検出" << endl;
+        abort();
+    }
+    }
+    cout << endl;
 }
 
 void OmegaSom::updateAlphaNb(int t){//一次関数での減少スケジュール
