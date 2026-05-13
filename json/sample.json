@@ -1,0 +1,15 @@
+{
+    "dimensionNum" : 4,
+    "mapRow" : 79,
+    "mapCol" : 155,
+    
+    "somInitAlpha" : 10,
+    "somFinAlpha" : 1,
+    "somInitNbRadius" : 70,
+    "somFinNbRadius" : 7,
+    "somIterMax" : 50,
+    "somWindowSize" : 10,
+
+    "csvDirPath" : "../../csv/"
+    
+}

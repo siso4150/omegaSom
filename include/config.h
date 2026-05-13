@@ -1,9 +1,11 @@
 #pragma once
 
+#include "json.hpp"
+
 using namespace std;
 
 struct config{
-    int dimensionNum = 4;
+    int dimensionNum;
     int mapRow;
     int mapCol;
 
@@ -14,4 +16,12 @@ struct config{
     double somFinNbRadius;
 
     int somIterMax;
+
+    int somWindowSize;
+
+    string csvDirPath;
 };
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,
+    dimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,somIterMax,somWindowSize,csvDirPath)
+
