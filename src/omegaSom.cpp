@@ -40,7 +40,8 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
     alpha = cfg.somInitAlpha;
     nbRadius = cfg.somInitNbRadius;
     beta = 2;
-    tau = 50;
+    tau = 20;
+    resetLocalIter();
 }
 
 void OmegaSom::onlineLearn(int t){
@@ -51,7 +52,7 @@ void OmegaSom::onlineLearn(int t){
 
     onlineAdapt(BMUIdx,inputIdx); //プロトタイプベクトル（参照ベクトル）更新
     updateOmega(BMUIdx,inputIdx,t); //次元重み更新
-    updateAlphaNb(t); //学習率、近傍半径の更新
+    updateAlphaNb(); //学習率、近傍半径の更新
 }
 
 void OmegaSom::batchLearn(int t){
@@ -89,7 +90,7 @@ void OmegaSom::onlineAdapt(int BMUIdx,int inputVec){
         //近傍関数を計算
         double nb = neighborhoodFunction(BMUIdx,i);
 
-        for(int k = 2; k < cfg.dimensionNum;k++){
+        for(int k = 0; k < cfg.dimensionNum;k++){
             somMap[i].weightVec[k] = somMap[i].weightVec[k] + alpha * nb * (disasterMap[inputVec].vec[k] - somMap[i].weightVec[k]);
         }
     }
@@ -118,15 +119,15 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         }
     }
 
-    cout << "Dn : ";
-    for(auto val : density) {
-        cout << val << " ";
-        if(isnan(val)){
-        cerr << "nan値検出" << endl;
-        abort();
-            }
-    }
-    cout << endl;
+    // cout << "Dn : ";
+    // for(auto val : density) {
+    //     cout << val << " ";
+    //     if(isnan(val)){
+    //     cerr << "nan値検出" << endl;
+    //     abort();
+    //         }
+    // }
+    // cout << endl;
 
     //omega_nを求める
     for(int n = 0; n < cfg.dimensionNum; n++){
@@ -147,9 +148,9 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         }
         omega[n] = runningSum[n] / cfg.somWindowSize;
     }
-    cout << "omegaHistery : ";
+    cout << "omegaHistery,";
     for(int n = 0; n < cfg.dimensionNum; n++) {
-        cout << omegaHistery[n][t % cfg.somWindowSize] << " ";
+        cout << omegaHistery[n][t % cfg.somWindowSize] << ",";
         if(isnan(omegaHistery[n][t % cfg.somWindowSize])){
         cerr << "nan値検出" << endl;
         abort();
@@ -158,7 +159,30 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
     cout << endl;
 }
 
-void OmegaSom::updateAlphaNb(int t){//一次関数での減少スケジュール
-    alpha = max(cfg.somFinAlpha,cfg.somInitAlpha * ((double)1 - t / tau));
-    nbRadius = max(cfg.somFinNbRadius,cfg.somInitNbRadius * ((double)1 - t / tau));
+void OmegaSom::updateAlphaNb(){//指数関数での減少スケジュール
+    alpha = max(cfg.somFinAlpha, cfg.somInitAlpha * exp(-(double)localIteration / tau));
+    nbRadius = max(cfg.somFinNbRadius, cfg.somInitNbRadius * exp(-(double)localIteration / tau));
+    localIteration++;
+}
+
+void OmegaSom::saveNeuronState(int t){
+    ostringstream oss;
+    
+    oss << cfg.csvOutputPath << "neuron_gen_" << setfill('0') << setw(4) << t << ".csv";
+    string filePath = oss.str();
+
+    ofstream file(filePath);
+    if (!file.is_open()) return;
+
+    file << "x,y,risk" << endl;
+
+    for(int i = 0; i < somMap.size(); i++){
+        file << somMap[i].x << "," << somMap[i].y << ",";
+        double tmp = 0;
+        for(int j = 2; j < somMap[i].weightVec.size();j++){
+            tmp += somMap[i].weightVec[j];
+        }
+        file << tmp << endl;
+    }
+    file.close();
 }

@@ -22,8 +22,9 @@ struct config{
     double somBeta;
 
     string csvDirPath;
+    string csvOutputPath;
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,
-    dimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,somIterMax,somWindowSize,somBeta,csvDirPath)
+    dimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,somIterMax,somWindowSize,somBeta,csvDirPath,csvOutputPath)
 

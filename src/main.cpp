@@ -34,19 +34,21 @@ int main(int argc, char* argv[]){
 
     int csvCnt = 2;
     for(int time = 1; time <= cfg.somIterMax; time++){
-        cout << time << "世代目" << endl;
+        cout << time << "世代目,";
         
         som.onlineLearn(time);
 
-        if(time % 10 == 0 && csvCnt < 7){
+        if(time % 20 == 0 && csvCnt < 7){
             ostringstream oss;
             oss << cfg.csvDirPath <<  "hazard_" << setfill('0') << setw(4) << csvCnt << ".csv";
             string targetPath = oss.str();
 
-            cout << "Read :" << targetPath << endl;
+            // cout << "Read :" << targetPath << endl;
             dMap.loadFromCsv(targetPath);
             csvCnt++;
+            som.resetLocalIter();
         }
-    }
 
+        som.saveNeuronState(time);
+    }
 }

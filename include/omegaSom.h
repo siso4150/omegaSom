@@ -39,6 +39,8 @@ private:
     unsigned int seed = 30;
     std::mt19937 gen;
 
+    int localIteration;
+
 
 
 public:
@@ -53,12 +55,16 @@ public:
 
     int findBMU(int); //BMUを見つける
 
+    void saveNeuronState(int); //ニューロン状態を保存
+
     
 
     void updateOmega(int,int,int); //次元重みを更新
-    void updateAlphaNb(int); //学習率・近傍半径の更新
+    void updateAlphaNb(); //学習率・近傍半径の更新
 
     double neighborhoodFunction(int,int); //近傍関数
     double calcNeuronDist(int,int); //両ノードの距離を計算
+
+    void resetLocalIter(){localIteration = 0;};
 
 };
