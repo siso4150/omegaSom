@@ -1,5 +1,7 @@
 #include "ant.h"
 
+mt19937_64 Ant::randomGen(random_device{}());
+
 Ant::Ant(){
     initAnt();
 }
@@ -7,6 +9,8 @@ Ant::Ant(){
 void Ant::initAnt(){
     pVec.resize(8,0);
     route.clear();
+    dist = 0;
+    risk = 0;
 
 }
 
@@ -17,6 +21,8 @@ void Ant::resetAnt(){
 void Ant::restart(int x, int y){
     route.clear();
     route.push_back({x,y,-1});
+    dist = 0;
+    risk = 0;
 }
 
 void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vector<vector<int>>& tableRef){
@@ -25,7 +31,13 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
     while(true){
         cur.x = route.back().x;
         cur.y = route.back().y;
-        int neuronIdx = tableRef[cur.x][cur.y];
+        int neuronIdx = tableRef[cur.y][cur.x];
+
+        if(cfgRef.goalX == cur.x && cfgRef.goalY == cur.y){//ゴールに到達したか
+            route.back().d = -1;
+            cout << "->探索終了 : (dist,risk) = " << dist << "," << risk << endl;
+            break;
+        }
 
         dist++;
         for(int n = 2; n < cfgRef.dimensionNum; n++){
@@ -45,6 +57,7 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
         int dir = dirSelect();
         if(dir == -1){
             restart(cfgRef.startX,cfgRef.startY);
+            cout << "探索をリスタート" << endl;
             continue;
         }
 
@@ -71,9 +84,6 @@ void Ant::calcProb(const config& cfgRef,const vector<Neuron>& mapRef, const vect
             double distP = mapRef[movedNeuronIdx].acoData->distPhr[i] * cfgRef.acoCfg.acoPhrWeight;
             double riskP = mapRef[movedNeuronIdx].acoData->riskPhr[i] * ((double)1 - cfgRef.acoCfg.acoPhrWeight);
 
-            cout << mapRef.size() << endl;
-            cout << pVec.size() << endl;
-
             pVec[i] = pow(distP+riskP,cfgRef.acoCfg.acoAlpha) * pow(mapRef[movedNeuronIdx].acoData->heurisitc[i],cfgRef.acoCfg.acoBeta);
         }
     }
@@ -90,7 +100,7 @@ int Ant::dirSelect(){
     for(int i = 1; i < pVec.size();i++) acm[i] = acm[i-1] + pVec[i];
 
     uniform_real_distribution<double> dist(0,1);
-    double r = dist(gen);
+    double r = dist(randomGen);
 
     for(int i = 0; i < acm.size();i++){
         if(r < acm[i]){

@@ -32,39 +32,43 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
         ants.push_back(Ant());
     }
 
+    initNeuronAcoData();//特に,ヒューリスティック値を初期化
+
 
 }
 
 void Colony::run(){
 
     for(int gen = 0; gen < 20; gen++){
+        int cnt = 0;
+        for(auto& ant : ants){
+            cnt++;
+            cout << "ant" << cnt << "探索開始";
+            ant.search(*cfgPtr,*mapPtr,neuronIdxTable);
+        }
 
-    for(auto& ant : ants){
-        ant.search(*cfgPtr,*mapPtr,neuronIdxTable);
-    }
-
-    updateSolution();
-    updatePhr();
+        updateSolution();
+        updatePhr();
     }
 }
 
 void Colony::updatePhr(){
+    
     //フェロモンの蒸発
-    for(int i = 0; i < mapPtr->size(); i++){
-        for(int j = 0; j < mapPtr->at(0).acoData->distPhr.size(); j++){
-            mapPtr->at(i).acoData->distPhr[j] *= ((double)1 - cfgPtr->acoCfg.evaRate);
-            mapPtr->at(i).acoData->riskPhr[j] *= ((double)1 - cfgPtr->acoCfg.evaRate);
+    double rate = ((double)1 - cfgPtr->acoCfg.evaRate);
+    for(auto& neuron : *mapPtr){
+        if(!neuron.acoData)continue;
+        for (size_t j = 0; j < neuron.acoData->distPhr.size(); ++j) {
+            neuron.acoData->distPhr[j] *= rate;
+            neuron.acoData->riskPhr[j] *= rate;
         }
     }
 
     //Q値の更新
-    int k = 0;
-    int min = minCost;
-    while(min > 0){
-        min /= 10;
-        k++;
+    if (minCost > 0) {
+        int k = static_cast<int>(std::log10(minCost)) + 1;
+        Q = std::pow(10, k);
     }
-    Q = pow(10,k);
 
     //フェロモンの加算
     for(const auto& ant: ants){
@@ -113,13 +117,17 @@ void Colony::initNeuronAcoData(){//とりあえずゴールまでの距離だけ
     }
 
     for(int i = 0; i < mapPtr->size(); i++){
-        for(int i = 0; i < 8; i++){
-            int movedX = mapPtr->at(i).x + dX[i];
-            int movedY = mapPtr->at(i).y + dY[i];
+        for(int d = 0; d < 8; d++){
+            int movedX = mapPtr->at(i).x + dX[d];
+            int movedY = mapPtr->at(i).y + dY[d];
+
+            if(!(movedX >= 0 && movedY >= 0 && movedX < cfgPtr->mapCol && movedY < cfgPtr->mapRow)){
+                continue;
+            }
             int movedNeuronIdx = neuronIdxTable[movedY][movedX];
 
             if(movedX >= 0 && movedY >= 0 && movedX < cfgPtr->mapCol && movedY < cfgPtr->mapRow && movedNeuronIdx >= 0){
-                mapPtr->at(i).acoData->heurisitc[i] = ((double)1 / (mapPtr->at(i).acoData->toGoal + 0.01));
+                mapPtr->at(i).acoData->heurisitc[d] = ((double)1 / (mapPtr->at(movedNeuronIdx).acoData->toGoal + 0.01));
             }
         }
     }

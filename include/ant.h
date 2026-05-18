@@ -11,6 +11,8 @@ struct Coord{
     int d;
 };
 
+
+
 class Ant{
 private:
     vector<Coord> route;
@@ -24,7 +26,7 @@ private:
     inline static const int dX[] = {0, 1, 1, 1, 0, -1, -1, -1};
     inline static const int dY[] = {-1, -1, 0, 1, 1, 1, 0, -1};
 
-    mt19937_64 gen;
+    static mt19937_64 randomGen;
     
 
 
@@ -43,3 +45,4 @@ public:
     double getRisk()const{return risk;};
     const vector<Coord>& getRoute()const{return route;}; 
 };
+
