@@ -15,10 +15,10 @@
     "csvDirPath" : "/home/sakai/cppfile/omegaSOM/csv/",
     "csvOutputPath" : "/home/sakai/cppfile/omegaSOM/output/",
 
-    "startX" : 0,
-    "startY" : 0,
-    "goalX" : 134,
-    "goalY" : 78,
+    "startX" : 121,
+    "startY" : 8,
+    "goalX" : 24,
+    "goalY" : 44,
 
     "acoCfg":{
         "antNum" : 10,
