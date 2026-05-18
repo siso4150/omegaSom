@@ -12,6 +12,19 @@
 
     "somBeta" : 1.5,
 
-    "csvDirPath" : "/home/sakai/cppfile/omegaSOM/csv/"
-    
+    "csvDirPath" : "/home/sakai/cppfile/omegaSOM/csv/",
+    "csvOutputPath" : "/home/sakai/cppfile/omegaSOM/output/",
+
+    "startX" : 0,
+    "startY" : 0,
+    "goalX" : 134,
+    "goalY" : 78,
+
+    "acoCfg":{
+        "antNum" : 10,
+        "acoPhrWeight" : 0.5,
+        "acoAlpha" : 1.0,
+        "acoBeta" : 2.0,
+        "evaRate" : 0.5
+    }
 }
