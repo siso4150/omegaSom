@@ -2,10 +2,12 @@
 
 #include "config.h"
 #include "disasterMap.h"
+#include "acoData.h"
 
 #include <vector>
 #include <random>
 #include <math.h>
+#include <memory>
 
 
 using namespace std;
@@ -15,6 +17,9 @@ struct Neuron{
     vector<double> inflNumerator;
     double inflDenominator;
     int x,y;
+    double riskval;
+
+    unique_ptr<AcoData> acoData;
 };
 
 class OmegaSom{
@@ -66,5 +71,7 @@ public:
     double calcNeuronDist(int,int); //両ノードの距離を計算
 
     void resetLocalIter(){localIteration = 0;};
+
+    vector<Neuron>& getSomMap(){return somMap;};
 
 };

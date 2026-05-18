@@ -4,6 +4,18 @@
 
 using namespace std;
 
+//ACOのコンフィグ
+struct AcoConfig{
+    int antNum;
+    double acoPhrWeight;
+    double acoAlpha;
+    double acoBeta;
+    double evaRate;
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AcoConfig,antNum,acoPhrWeight,acoAlpha,acoBeta,evaRate)
+
+//共通＋SOMのコンフィグ
 struct config{
     int dimensionNum;
     int mapRow;
@@ -23,8 +35,16 @@ struct config{
 
     string csvDirPath;
     string csvOutputPath;
+
+    int startX;
+    int startY;
+    int goalX;
+    int goalY;
+
+    AcoConfig acoCfg;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,
-    dimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,somIterMax,somWindowSize,somBeta,csvDirPath,csvOutputPath)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,dimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,
+    somIterMax,somWindowSize,somBeta,csvDirPath,csvOutputPath,startX,startY,goalX,goalY,acoCfg)
+
 

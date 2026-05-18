@@ -2,6 +2,7 @@
 #include "disasterMap.h"
 #include "omegaSom.h"
 #include "json.hpp"
+#include "colony.h"
 
 #include <fstream>
 #include <iostream>
@@ -32,6 +33,8 @@ int main(int argc, char* argv[]){
 
     OmegaSom som(cfg,dMap.getDisasterMap());
 
+    Colony colony(cfg,som.getSomMap());
+
     int csvCnt = 2;
     for(int time = 1; time <= cfg.somIterMax; time++){
         cout << time << "世代目,";
@@ -39,6 +42,9 @@ int main(int argc, char* argv[]){
         som.onlineLearn(time);
 
         if(time % 20 == 0 && csvCnt < 7){
+
+            colony.run();
+
             ostringstream oss;
             oss << cfg.csvDirPath <<  "hazard_" << setfill('0') << setw(4) << csvCnt << ".csv";
             string targetPath = oss.str();

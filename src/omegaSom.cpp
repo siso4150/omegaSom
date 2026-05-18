@@ -15,13 +15,17 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
             neuron.x = disasterMap[i].x;
             neuron.y = disasterMap[i].y;
 
+            if (cfg.dimensionNum < 2) {
+        std::cerr << "Error: dimensionNum が 2 未満です。現在の値: " << cfg.dimensionNum << std::endl;
+        return; 
+    }
             for(int n = 0; n < cfg.dimensionNum; n++){
                 neuron.weightVec.push_back(rdist(gen));
             }
             neuron.weightVec[0] = neuron.x;
             neuron.weightVec[1] = neuron.y;
 
-            somMap.push_back(neuron);
+            somMap.push_back(move(neuron));
         }
     }
 
