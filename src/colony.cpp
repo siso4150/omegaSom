@@ -40,6 +40,7 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
 void Colony::run(){
 
     for(int gen = 0; gen < 20; gen++){
+        cout << "第" << gen+1 << "世代" << endl;
         int cnt = 0;
         for(auto& ant : ants){
             cnt++;
@@ -59,8 +60,17 @@ void Colony::updatePhr(){
     for(auto& neuron : *mapPtr){
         if(!neuron.acoData)continue;
         for (size_t j = 0; j < neuron.acoData->distPhr.size(); ++j) {
-            neuron.acoData->distPhr[j] *= rate;
-            neuron.acoData->riskPhr[j] *= rate;
+            int X = neuron.x + dX[j];
+            int Y = neuron.y + dY[j];
+
+            //範囲外かつ、道がある方向にのみ蒸発処理
+            if(!(X >= 0 && Y >= 0 && X < cfgPtr->mapCol && Y < cfgPtr->mapRow)){
+                continue;
+            }
+            if(neuronIdxTable[Y][X] >= 0){
+                neuron.acoData->distPhr[j] = max(neuron.acoData->distPhr[j]*cfgPtr->acoCfg.evaRate,cfgPtr->acoCfg.phrMin);
+                neuron.acoData->riskPhr[j] = max(neuron.acoData->riskPhr[j]*cfgPtr->acoCfg.evaRate,cfgPtr->acoCfg.phrMin);
+            }
         }
     }
 
@@ -72,6 +82,7 @@ void Colony::updatePhr(){
 
     //フェロモンの加算
     for(const auto& ant: ants){
+        if(ant.getDist() != minDist)continue; //一番いいやつだけ加算させる
         double distAdd = Q / ant.getDist();
         double riskAdd = Q / ant.getRisk();
 
@@ -79,8 +90,11 @@ void Colony::updatePhr(){
             if(coord.d == -1)break;
 
             int neuronIdx = neuronIdxTable[coord.y][coord.x];
-            mapPtr->at(neuronIdx).acoData->distPhr[coord.d] += distAdd;
-            mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] += riskAdd;
+
+            //最大値を設定
+            mapPtr->at(neuronIdx).acoData->distPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->distPhr[coord.d] + distAdd);
+            mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] + riskAdd);
+            
         }
     }
 }

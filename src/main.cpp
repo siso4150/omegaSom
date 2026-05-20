@@ -55,6 +55,8 @@ int main(int argc, char* argv[]){
             som.resetLocalIter();
         }
 
+
         som.saveNeuronState(time);
     }
+    colony.run();
 }

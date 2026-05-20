@@ -11,9 +11,11 @@ struct AcoConfig{
     double acoAlpha;
     double acoBeta;
     double evaRate;
+    double phrMax;
+    double phrMin;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AcoConfig,antNum,acoPhrWeight,acoAlpha,acoBeta,evaRate)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AcoConfig,antNum,acoPhrWeight,acoAlpha,acoBeta,evaRate,phrMax,phrMin)
 
 //共通＋SOMのコンフィグ
 struct config{

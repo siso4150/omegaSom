@@ -7,7 +7,7 @@
     "somFinAlpha" : 0.01,
     "somInitNbRadius" : 70,
     "somFinNbRadius" : 10,
-    "somIterMax" : 100,
+    "somIterMax" : 120,
     "somWindowSize" : 10,
 
     "somBeta" : 1.5,
@@ -17,14 +17,16 @@
 
     "startX" : 121,
     "startY" : 8,
-    "goalX" : 24,
-    "goalY" : 44,
+    "goalX" : 73,
+    "goalY" : 17,
 
     "acoCfg":{
         "antNum" : 10,
         "acoPhrWeight" : 0.5,
         "acoAlpha" : 1.0,
         "acoBeta" : 2.0,
-        "evaRate" : 0.5
+        "evaRate" : 0.5,
+        "phrMax" : 10.0,
+        "phrMin" : 0.1
     }
 }
