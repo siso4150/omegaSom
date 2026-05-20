@@ -37,6 +37,7 @@ struct config{
 
     string csvDirPath;
     string csvOutputPath;
+    string csvOutputRoutePath;
 
     int startX;
     int startY;
@@ -47,6 +48,6 @@ struct config{
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,dimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,
-    somIterMax,somWindowSize,somBeta,csvDirPath,csvOutputPath,startX,startY,goalX,goalY,acoCfg)
+    somIterMax,somWindowSize,somBeta,csvDirPath,csvOutputPath,csvOutputRoutePath,startX,startY,goalX,goalY,acoCfg)
 
 

@@ -9,6 +9,8 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
 
     maxToGoal = -1;
     minToGoal = 1e9;
+
+    runCnt = 1;
     
     //table初期化
     neuronIdxTable.assign(cfgPtr->mapRow + 1, std::vector<int>(cfgPtr->mapCol + 1, -1));
@@ -51,7 +53,8 @@ void Colony::run(){
         updateSolution();
         updatePhr();
     }
-
+    resultToCsv();
+    runCnt++;
     terminateRun();
 }
 
@@ -127,6 +130,25 @@ void Colony::terminateRun(){
     minRisk = 1e9;
     minCost = 1e9;
 }
+
+void Colony::resultToCsv(){
+    ostringstream oss;
+    oss << cfgPtr->csvOutputRoutePath << "route_" << setfill('0') << setw(4) << runCnt << ".csv";
+    string target = oss.str();
+
+    ofstream file(target);
+    if (!file.is_open()) {
+        std::cerr << "Error: ファイルを開けませんでした: " << target << endl;;
+        return;
+    }
+
+    file << "x,y" << "\n";
+    for(auto& c : bestRoute){
+        file << c.x << "," << c.y << "\n";
+    }
+    file.close();
+    cout << target << "に結果を出力" << endl;
+}   
 
 void Colony::initNeuronAcoData(){//とりあえずゴールまでの距離だけでヒューリスティック値を付ける
     for(int i = 0; i < mapPtr->size(); i++){

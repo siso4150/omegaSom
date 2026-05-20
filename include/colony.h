@@ -5,6 +5,8 @@
 #include "ant.h"
 
 #include <vector>
+#include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -29,6 +31,8 @@ private:
     double minToGoal;
 
     vector<vector<Coord>> bestRouteHistery;
+
+    int runCnt;
 
     inline static const int dX[] = {0, 1, 1, 1, 0, -1, -1, -1};
     inline static const int dY[] = {-1, -1, 0, 1, 1, 1, 0, -1};

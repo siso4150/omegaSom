@@ -14,6 +14,7 @@
 
     "csvDirPath" : "/home/sakai/cppfile/omegaSOM/csv/",
     "csvOutputPath" : "/home/sakai/cppfile/omegaSOM/output/",
+    "csvOutputRoutePath" : "/home/sakai/cppfile/omegaSOM/output/route/",
 
     "startX" : 121,
     "startY" : 8,
