@@ -51,6 +51,8 @@ void Colony::run(){
         updateSolution();
         updatePhr();
     }
+
+    terminateRun();
 }
 
 void Colony::updatePhr(){
@@ -115,6 +117,15 @@ void Colony::updateSolution(){
         }
     }
     cout << "現在までの最適解 距離:" << minDist << " リスク:" << minRisk << " コスト:" << minCost << endl;
+}
+
+void Colony::terminateRun(){
+    cout << "このマップでの最適解 距離:" << minDist << " リスク:" << minRisk << " コスト:" << minCost << endl;
+    bestRouteHistery.push_back(bestRoute);
+    bestRoute.clear();
+    minDist = 1e9;
+    minRisk = 1e9;
+    minCost = 1e9;
 }
 
 void Colony::initNeuronAcoData(){//とりあえずゴールまでの距離だけでヒューリスティック値を付ける

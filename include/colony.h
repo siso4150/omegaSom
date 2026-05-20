@@ -28,6 +28,8 @@ private:
     double maxToGoal;
     double minToGoal;
 
+    vector<vector<Coord>> bestRouteHistery;
+
     inline static const int dX[] = {0, 1, 1, 1, 0, -1, -1, -1};
     inline static const int dY[] = {-1, -1, 0, 1, 1, 1, 0, -1};
 
@@ -38,7 +40,11 @@ public:
     void updatePhr();
     void updateSolution();
 
+    void terminateRun();
+
     double normalize(double x,double xmin,double xmax){return (x-xmin) / (xmax-xmin);};
+
+    void resultToCsv();
 
     
     void initNeuronAcoData();
