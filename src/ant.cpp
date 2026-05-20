@@ -2,8 +2,12 @@
 
 mt19937_64 Ant::randomGen(random_device{}());
 
-Ant::Ant(){
-    initAnt();
+Ant::Ant(const config& cfg){
+    pVec.resize(8,0);
+    route.clear();
+    dist = 0;
+    risk = 0;
+    visit.assign(cfg.mapRow,vector<int>(cfg.mapCol,0)); //visitのメモリ確保
 }
 
 void Ant::initAnt(){
@@ -14,15 +18,17 @@ void Ant::initAnt(){
 
 }
 
-void Ant::resetAnt(){
-    initAnt();
-}
-
 void Ant::restart(int x, int y){
     route.clear();
     route.push_back({x,y,-1});
     dist = 0;
     risk = 0;
+
+    //visitを0埋め
+    for(int i = 0; i < visit.size();i++){
+        fill(visit[i].begin(),visit[i].end(),0);
+    }
+    
 }
 
 void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vector<vector<int>>& tableRef){
@@ -32,6 +38,8 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
         cur.x = route.back().x;
         cur.y = route.back().y;
         int neuronIdx = tableRef[cur.y][cur.x];
+
+        visit[cur.y][cur.x]++; //訪問回数を加算
 
         if(cfgRef.goalX == cur.x && cfgRef.goalY == cur.y){//ゴールに到達したか
             route.back().d = -1;
@@ -44,13 +52,14 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
             risk+= mapRef[neuronIdx].weightVec[n];
         }
 
+
+
         if(dist % 10000 == 0){
-            //cout << "探索" << dist << "ステップ目" << endl;
-            if(dist ==  100000){
-                cout << "探索をリスタート" << endl;
-                restart(cfgRef.startX,cfgRef.startY);
-                continue;
-            }
+           
+            cout << "探索をリスタート" << endl;
+            restart(cfgRef.startX,cfgRef.startY);
+            continue;
+        
         }
 
         calcProb(cfgRef,mapRef,tableRef);
@@ -85,7 +94,9 @@ void Ant::calcProb(const config& cfgRef,const vector<Neuron>& mapRef, const vect
             double riskP = mapRef[movedNeuronIdx].acoData->riskPhr[i] * ((double)1 - cfgRef.acoCfg.acoPhrWeight);
 
             pVec[i] = pow(distP+riskP,cfgRef.acoCfg.acoAlpha) * pow(mapRef[movedNeuronIdx].acoData->heurisitc[i],cfgRef.acoCfg.acoBeta);
+            pVec[i] /= visit[movedY][movedX] + 1; //訪問回数に応じて選びにくくする
         }
+        
     }
 }
 

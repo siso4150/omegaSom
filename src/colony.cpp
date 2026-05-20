@@ -29,7 +29,7 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
 
     //アントの初期化
     for(int i = 0; i < cfgPtr->acoCfg.antNum; i++){
-        ants.push_back(Ant());
+        ants.push_back(Ant(*cfgPtr));
     }
 
     initNeuronAcoData();//特に,ヒューリスティック値を初期化
@@ -82,7 +82,7 @@ void Colony::updatePhr(){
 
     //フェロモンの加算
     for(const auto& ant: ants){
-        if(ant.getDist() != minDist)continue; //一番いいやつだけ加算させる
+        //if(ant.getDist() != minDist)continue; //一番いいやつだけ加算させる
         double distAdd = Q / ant.getDist();
         double riskAdd = Q / ant.getRisk();
 

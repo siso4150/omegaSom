@@ -27,18 +27,19 @@ private:
     inline static const int dY[] = {-1, -1, 0, 1, 1, 1, 0, -1};
 
     static mt19937_64 randomGen;
+
+    vector<vector<int>> visit;
     
 
 
 public:
 
-    Ant();
+    Ant(const config&);
     void initAnt();
     void search(const config&, const vector<Neuron>&, const vector<vector<int>>&);
 
     void calcProb(const config& cfgRef,const vector<Neuron>&, const vector<vector<int>>&);
     int dirSelect();
-    void resetAnt();
     void restart(int,int);
 
     int getDist() const{return dist;};
