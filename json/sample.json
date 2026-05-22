@@ -1,5 +1,5 @@
 {
-    "dimensionNum" : 4,
+    "dimensionNum" : 5,
     "mapRow" : 79,
     "mapCol" : 155,
     
@@ -17,9 +17,9 @@
     "csvOutputRoutePath" : "/home/sakai/cppfile/omegaSOM/output/route/",
 
     "startX" : 121,
-    "startY" : 8,
-    "goalX" : 73,
-    "goalY" : 17,
+    "startY" : 58,
+    "goalX" : 21,
+    "goalY" : 45,
 
     "acoCfg":{
         "antNum" : 10,

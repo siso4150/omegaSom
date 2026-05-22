@@ -26,6 +26,12 @@ void DisasterMap::loadFromCsv(const string& filePath){
         getline(ss, item, ',');
         item = trim(item);
         cell.isRoad = !item.empty();
+        double roadWidth;
+        if(!item.empty()){
+            roadWidth = stoi(item);
+        }else{
+            roadWidth = 0;
+        }
 
         //x座標
         getline(ss, item, ',');
@@ -38,6 +44,9 @@ void DisasterMap::loadFromCsv(const string& filePath){
         item = trim(item);
         cell.y = stoi(item);
         cell.vec.push_back(stoi(item));
+
+        //道路の幅を入れる
+        cell.vec.push_back(roadWidth);
 
         //標高
         getline(ss, item, ',');

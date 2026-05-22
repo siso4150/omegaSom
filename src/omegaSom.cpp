@@ -15,10 +15,6 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
             neuron.x = disasterMap[i].x;
             neuron.y = disasterMap[i].y;
 
-            if (cfg.dimensionNum < 2) {
-        std::cerr << "Error: dimensionNum が 2 未満です。現在の値: " << cfg.dimensionNum << std::endl;
-        return; 
-    }
             for(int n = 0; n < cfg.dimensionNum; n++){
                 neuron.weightVec.push_back(rdist(gen));
             }
@@ -122,16 +118,6 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
             density[n] += nb * ((disasterMap[inputIdx].vec[n] - somMap[k].weightVec[n]) * (disasterMap[inputIdx].vec[n] - somMap[k].weightVec[n]));
         }
     }
-
-    // cout << "Dn : ";
-    // for(auto val : density) {
-    //     cout << val << " ";
-    //     if(isnan(val)){
-    //     cerr << "nan値検出" << endl;
-    //     abort();
-    //         }
-    // }
-    // cout << endl;
 
     //omega_nを求める
     for(int n = 0; n < cfg.dimensionNum; n++){

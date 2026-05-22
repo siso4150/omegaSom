@@ -40,6 +40,7 @@ int main(int argc, char* argv[]){
         cout << time << "世代目,";
         
         som.onlineLearn(time);
+        som.saveNeuronState(time);
 
         if(time % 20 == 0 && csvCnt < 7){
 
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]){
         }
 
 
-        som.saveNeuronState(time);
+        
     }
     colony.run();
 }
