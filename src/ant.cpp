@@ -52,8 +52,6 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
             risk+= mapRef[neuronIdx].weightVec[n];
         }
 
-
-
         if(dist % 10000 == 0){
            
             cout << "探索をリスタート" << endl;
@@ -88,7 +86,7 @@ void Ant::calcProb(const config& cfgRef,const vector<Neuron>& mapRef, const vect
         }
         int movedNeuronIdx = tableRef[movedY][movedX];
 
-        if(movedNeuronIdx >= 0){
+        if(movedNeuronIdx >= 0 && mapRef.at(movedNeuronIdx).isPossible == true){//道路であり、通行可能
             
             double distP = mapRef[movedNeuronIdx].acoData->distPhr[i] * cfgRef.acoCfg.acoPhrWeight;
             double riskP = mapRef[movedNeuronIdx].acoData->riskPhr[i] * ((double)1 - cfgRef.acoCfg.acoPhrWeight);
@@ -118,4 +116,5 @@ int Ant::dirSelect(){
             return i;
         }
     }
+    return -1;
 }

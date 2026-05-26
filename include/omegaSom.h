@@ -16,6 +16,7 @@ struct Neuron{
     vector<double> weightVec;
     vector<double> inflNumerator;
     double inflDenominator;
+    bool isPossible; //通行可能かどうか
     int x,y;
     double riskval;
 
@@ -73,5 +74,10 @@ public:
     void resetLocalIter(){localIteration = 0;};
 
     vector<Neuron>& getSomMap(){return somMap;};
+    
+    
+    void setIsPossible(int idx,bool possible){
+        somMap.at(idx).isPossible = possible;
+    }
 
 };

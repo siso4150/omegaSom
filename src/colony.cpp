@@ -87,7 +87,7 @@ void Colony::updatePhr(){
 
     //フェロモンの加算
     for(const auto& ant: ants){
-        //if(ant.getDist() != minDist)continue; //一番いいやつだけ加算させる
+        if(ant.getDist() != minDist)continue; //一番いいやつだけ加算させる
         double distAdd = Q / ant.getDist();
         double riskAdd = Q / ant.getRisk();
 

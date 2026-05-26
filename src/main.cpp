@@ -3,6 +3,7 @@
 #include "omegaSom.h"
 #include "json.hpp"
 #include "colony.h"
+#include "HazardManager.h"
 
 #include <fstream>
 #include <iostream>
@@ -35,6 +36,10 @@ int main(int argc, char* argv[]){
 
     Colony colony(cfg,som.getSomMap());
 
+    HazardManager hazardManager(cfg,&som,&colony);
+
+    
+
     int csvCnt = 2;
     for(int time = 1; time <= cfg.somIterMax; time++){
         cout << time << "世代目,";
@@ -54,10 +59,9 @@ int main(int argc, char* argv[]){
             dMap.loadFromCsv(targetPath);
             csvCnt++;
             som.resetLocalIter();
+            //塞ぐ
+            hazardManager.randomRoadClose();
         }
-
-
-        
     }
     colony.run();
 }

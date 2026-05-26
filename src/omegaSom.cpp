@@ -18,8 +18,12 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
             for(int n = 0; n < cfg.dimensionNum; n++){
                 neuron.weightVec.push_back(rdist(gen));
             }
+
+            //ここやばいんじゃないか
             neuron.weightVec[0] = neuron.x;
             neuron.weightVec[1] = neuron.y;
+
+            neuron.isPossible = true;
 
             somMap.push_back(move(neuron));
         }
@@ -164,7 +168,7 @@ void OmegaSom::saveNeuronState(int t){
     ofstream file(filePath);
     if (!file.is_open()) return;
 
-    file << "x,y,risk" << endl;
+    file << "x,y,risk,isPossible" << endl;
 
     for(int i = 0; i < somMap.size(); i++){
         file << somMap[i].x << "," << somMap[i].y << ",";
@@ -172,7 +176,8 @@ void OmegaSom::saveNeuronState(int t){
         for(int j = 2; j < somMap[i].weightVec.size();j++){
             tmp += somMap[i].weightVec[j];
         }
-        file << tmp << endl;
+        file << tmp << ",";
+        file << somMap[i].isPossible << endl;
     }
     file.close();
 }

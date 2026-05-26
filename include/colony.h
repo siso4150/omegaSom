@@ -50,6 +50,16 @@ public:
 
     void resultToCsv();
 
+    const vector<vector<int>>& getNeuronIdxTable() const{
+        return neuronIdxTable;
+    }
+
+    void setNeuronIdxTable(int y, int x, int val){
+        neuronIdxTable[y][x] = val;
+    }
+
+    
+
     
     void initNeuronAcoData();
 
