@@ -8,7 +8,7 @@ HazardManager::HazardManager(const config& cfg,OmegaSom* map, Colony* table) : c
 void HazardManager::randomRoadClose(){
 
     //数回、道路を封鎖する 
-    //ゴールが塞がれるとまずいので、修正しておく
+    //ゴールが塞がれるとまずいので、修正する
     for(int i = 0; i < 2; i++){
         uniform_int_distribution<> dist(0,somPtr->getSomMap().size()-1);
         int targetIdx = dist(gen);

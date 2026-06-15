@@ -7,6 +7,9 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
     gen.seed(seed);
     uniform_real_distribution<double> rdist(0,1);
 
+    //メモリ領域確保
+    somMap.reserve(disasterMap.size());
+
     for(int i = 0; i < disasterMap.size();i++){
         if(disasterMap[i].isRoad == false){
             continue;
@@ -15,8 +18,10 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
             neuron.x = disasterMap[i].x;
             neuron.y = disasterMap[i].y;
 
+            neuron.weightVec.assign(cfg.dimensionNum,0.0);
+
             for(int n = 0; n < cfg.dimensionNum; n++){
-                neuron.weightVec.push_back(rdist(gen));
+                neuron.weightVec[n] = (rdist(gen));
             }
 
             //ここやばいんじゃないか
@@ -28,6 +33,9 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
             somMap.push_back(move(neuron));
         }
     }
+
+    //メモリ領域削減
+    somMap.shrink_to_fit();
 
     omega.assign(cfg.dimensionNum,(double)1 / cfg.dimensionNum);
     density.assign(cfg.dimensionNum,0);

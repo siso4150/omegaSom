@@ -20,7 +20,7 @@ int main(int argc, char* argv[]){
     }
 
     //ファイルの読み込み
-    ifstream f(config_file);
+    ifstream f("/home/sakai/cppfile/omegaSOM/json/sample.json");
     if (!f.is_open()) {
         cerr << "Error: Failed to open " << config_file << endl;
         return 1;
@@ -30,17 +30,21 @@ int main(int argc, char* argv[]){
     config cfg = data.get<config>(); //構造体へ代入(config.hppでマクロ使用)
 
     DisasterMap dMap(cfg);
-    dMap.loadFromCsv("/home/sakai/cppfile/omegaSOM/csv/hazard_0001.csv");
+    cout << "csvデータの読み込み中" << endl;
+    dMap.loadFromCsv("/home/sakai/cppfile/omegaSOM/csv/mesh_base.csv");
+    dMap.loadDynamicData();
 
     OmegaSom som(cfg,dMap.getDisasterMap());
 
     Colony colony(cfg,som.getSomMap());
 
-    HazardManager hazardManager(cfg,&som,&colony);
+    //HazardManager hazardManager(cfg,&som,&colony);
+
+    cout << "初期化終了" << endl;
 
     
 
-    int csvCnt = 2;
+    int csvCnt = 1;
     for(int time = 1; time <= cfg.somIterMax; time++){
         cout << time << "世代目,";
         
@@ -49,18 +53,17 @@ int main(int argc, char* argv[]){
 
         if(time % 20 == 0 && csvCnt < 7){
 
-            colony.run();
-
-            ostringstream oss;
-            oss << cfg.csvDirPath <<  "hazard_" << setfill('0') << setw(4) << csvCnt << ".csv";
-            string targetPath = oss.str();
-
+            //colony.run();
+            
             // cout << "Read :" << targetPath << endl;
-            dMap.loadFromCsv(targetPath);
+            
+            //マップの更新
+            dMap.updateData(csvCnt);
             csvCnt++;
+
             som.resetLocalIter();
             //塞ぐ
-            hazardManager.randomRoadClose();
+            //hazardManager.randomRoadClose();
         }
     }
     colony.run();
