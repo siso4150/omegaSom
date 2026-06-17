@@ -85,22 +85,23 @@ void DisasterMap::loadDynamicData(){
             getline(ss, windStr, ',');
             getline(ss, tempStr, ',');
 
-            vector<double> mesh;
-            //小数点の情報は落ちてる
-            mesh.push_back(std::stod(rainStr));
-            mesh.push_back(std::stod(windStr));
-            mesh.push_back(std::stod(tempStr));
+            // vector<double> mesh;
+            // //小数点の情報は落ちてる
+            // mesh.push_back(std::stod(rainStr));
+            // mesh.push_back(std::stod(windStr));
+            // mesh.push_back(std::stod(tempStr));
 
             // for(auto e : mesh){
             //     cout << e <<  ",";
             // }
             // cout << endl;
 
-            allWeather[t].push_back(mesh);
+            allWeather[t].push_back({std::stod(rainStr),std::stod(windStr),std::stod(tempStr)});
         }
     }
 
     combineData();
+    vecNormalizeDynamic();
 }
 
 void DisasterMap::combineData(){//静的データと動的データをくっつける
@@ -109,43 +110,93 @@ void DisasterMap::combineData(){//静的データと動的データをくっつ�
             disasterMap[i].vec.push_back(allWeather[0][i][j]);
         }
     }
-    cout << "combineData終了" <<  endl;
 }
 
 void DisasterMap::updateData(int time){
+    
+    if (allWeather[time].size() < disasterMap.size()) {
+        std::cerr << "エラー: allWeather[" << time << "] のサイズ (" << allWeather[time].size() 
+                  << ") が disasterMap のサイズ (" << disasterMap.size() << ") より小さいです。" << std::endl;
+        std::abort();
+    }
+
+
     for(int i = 0; i < disasterMap.size();i++){
-        for(int j = 0; j < 3; j++){
+        for(int j = 0; j < cfg.dynamicDimensionNum; j++){
             disasterMap[i].vec[cfg.staticDimensionNum+j] = allWeather[time][i][j];
         }
     }
+    cout << "weatehr_" << time << "適用" <<  endl;
     vecNormalizeDynamic();
 }
 
 void DisasterMap::vecNormalize(){
 
     for(int n = 0; n < cfg.staticDimensionNum; n++){
-        double max = 0;
-        double min = 1e9;
-        for(int i = 0; i < disasterMap.size();i++){
-            max = std::max(disasterMap[i].vec[n],max);
-            min = std::min(disasterMap[i].vec[n],min);
+        double maxVal = -std::numeric_limits<double>::infinity();
+        double minVal = std::numeric_limits<double>::infinity();
+
+        for(int i = 1; i < disasterMap.size();i++){
+            maxVal = std::max(disasterMap[i].vec[n],maxVal);
+            minVal = std::min(disasterMap[i].vec[n],minVal);
         }
+
+        //全てのメッシュが同じの時、０除算が出るのですべて0を入れる
+        if(minVal == maxVal){
+            for(int i = 0; i < disasterMap.size();i++){
+                disasterMap[i].vec[n] = 0.0;
+            }
+            continue;
+        }
+        
+        //正規化
         for(int i = 0; i < disasterMap.size();i++){
-            disasterMap[i].vec[n] = normalize(disasterMap[i].vec[n],min,max);
+            disasterMap[i].vec[n] = normalize(disasterMap[i].vec[n],minVal,maxVal);
+        }
+    }
+
+    //nanチェック
+    for(int i = 0; i < disasterMap.size();i++){
+        for(int n = 0; n < cfg.dimensionNum; n++){
+            if(isnan(disasterMap[i].vec[n])){
+                cout << "na値検出" << endl;
+                abort();
+            }
         }
     }
 }
 
 void DisasterMap::vecNormalizeDynamic(){
-    for(int n = cfg.staticDimensionNum; n < cfg.dynamicDimensionNum; n++){
-        double max = 0;
-        double min = 1e9;
+    for(int n = cfg.staticDimensionNum; n < cfg.dimensionNum; n++){
+        double maxVal = -std::numeric_limits<double>::infinity();
+        double minVal = std::numeric_limits<double>::infinity();
+        
         for(int i = 0; i < disasterMap.size();i++){
-            max = std::max(disasterMap[i].vec[n],max);
-            min = std::min(disasterMap[i].vec[n],min);
+            maxVal = std::max(disasterMap[i].vec[n],maxVal);
+            minVal = std::min(disasterMap[i].vec[n],minVal);
         }
+
+        //全てのメッシュが同じの時、０除算が出るのですべて0を入れる
+        if(minVal == maxVal){
+            for(int i = 0; i < disasterMap.size();i++){
+                disasterMap[i].vec[n] = 0.0;
+            }
+            continue;
+        }
+        
+        //正規化
         for(int i = 0; i < disasterMap.size();i++){
-            disasterMap[i].vec[n] = normalize(disasterMap[i].vec[n],min,max);
+            disasterMap[i].vec[n] = normalize(disasterMap[i].vec[n],minVal,maxVal);
+        }
+    }
+
+    //nanチェック
+    for(int i = 0; i < disasterMap.size();i++){
+        for(int n = 0; n < cfg.dimensionNum; n++){
+            if(isnan(disasterMap[i].vec[n])){
+                cout << "na値検出" << endl;
+                abort();
+            }
         }
     }
 }

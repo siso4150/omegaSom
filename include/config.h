@@ -20,6 +20,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AcoConfig,antNum,acoPhrWeight,acoAlpha,acoBet
 //共通＋SOMのコンフィグ
 struct config{
     int dimensionNum;
+    int staticDimensionNum;
+    int dynamicDimensionNum;
     int mapRow;
     int mapCol;
 
@@ -47,7 +49,7 @@ struct config{
     AcoConfig acoCfg;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,dimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,dimensionNum,staticDimensionNum,dynamicDimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,
     somIterMax,somWindowSize,somBeta,csvDirPath,csvOutputPath,csvOutputRoutePath,startX,startY,goalX,goalY,acoCfg)
 
 

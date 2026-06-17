@@ -11,8 +11,8 @@ import re
 csvDir = "/home/sakai/cppfile/omegaSOM/output"
 routeDir = "/home/sakai/cppfile/omegaSOM/output/route" # 経路CSVのディレクトリ
 
-mapHeight = 79 
-mapWidth = 155
+mapHeight = 794
+mapWidth = 823
 weightIdx = 2
 isPossibleIdx = 3 # ★追加: isPossible列のインデックス（CSVの構造に合わせて変更してください）
 
@@ -59,7 +59,7 @@ def loadRouteData(filePath):
 # ファイルリスト取得
 files = sorted(glob.glob(os.path.join(csvDir, "neuron_gen_*.csv")))
 
-fig, ax = plt.subplots(figsize=(8, 4))
+fig, ax = plt.subplots(figsize=(12, 8))
 
 # ★修正: matplotlibの仕様変更に対応するため .copy() で独立したカラーマップを生成
 currentCmap = copy.copy(plt.cm.jet)
@@ -69,7 +69,7 @@ currentCmap.set_under(color='black')
 # 初回表示
 initialData = loadRoadData(files[0])
 # vmin=0 が設定されているため、-1.0 は set_under の対象になる
-im = ax.imshow(initialData, cmap=currentCmap, origin='upper', vmin=0, vmax=2)
+im = ax.imshow(initialData, cmap=currentCmap, origin='upper', vmin=0, vmax=3)
 plt.colorbar(im, label='Risk Weight')
 
 # 経路描画用のラインオブジェクトを初期化（最初は空）
@@ -90,8 +90,8 @@ def update(frame):
         gen = int(match.group())
         
         # 20の倍数の世代のときだけ経路を更新する
-        if gen > 0 and gen % 20 == 0:
-            routeIdx = gen // 20
+        if gen > 0 and gen % 10 == 0:
+            routeIdx = gen // 10 + 1
             
             # 4桁のゼロ埋めでファイル名を作成 (例: route_0001.csv)
             routeFileName = f"route_{routeIdx:04d}.csv"
@@ -107,5 +107,13 @@ def update(frame):
     return [im, routeLine]
 
 ani = animation.FuncAnimation(fig, update, frames=len(files), interval=100, blit=False)
+
+# # 保存先のパスとファイル名を指定
+# outputMoviePath = "wsom_aco_animation.mp4"
+
+# print(f"動画を保存しています... (出力先: {outputMoviePath})")
+# # MP4として保存（fpsで動画の再生速度を調整）
+# ani.save(outputMoviePath, writer='ffmpeg', fps=10)
+# print("動画の保存が完了しました。")
 
 plt.show()

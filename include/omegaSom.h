@@ -42,7 +42,7 @@ private:
     const config& cfg; //コンフィグ用参照
     const vector<MapCell>& disasterMap; //災害マップ保持用の参照
 
-    unsigned int seed = 30;
+    unsigned int seed = 50;
     std::mt19937 gen;
 
     int localIteration;

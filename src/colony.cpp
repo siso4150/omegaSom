@@ -13,14 +13,11 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
     runCnt = 1;
     
     //table初期化
-    neuronIdxTable.assign(cfgPtr->mapRow + 1, std::vector<int>(cfgPtr->mapCol + 1, -1));
+    neuronIdxTable.assign(cfgPtr->mapRow+1, std::vector<int>(cfgPtr->mapCol+1, -1));
     //二次元配列に一次元配列のインデックスを書き込む
-    cout << cfgPtr->mapCol << "," << cfgPtr->mapRow << endl;
     for(int i = 0; i < mapPtr->size();i++){
 
-        cout << mapPtr->at(i).y << "," << mapPtr->at(i).x << endl;
-        
-        neuronIdxTable[mapPtr->at(i).y][mapPtr->at(i).x] = i;
+        neuronIdxTable.at(mapPtr->at(i).y).at(mapPtr->at(i).x) = i;
 
         mapPtr->at(i).acoData = make_unique<AcoData>();
         mapPtr->at(i).acoData->riskPhr.resize(8,1.0);
@@ -41,7 +38,7 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
 
 void Colony::run(){
 
-    for(int gen = 0; gen < 20; gen++){
+    for(int gen = 0; gen < 10; gen++){
         cout << "第" << gen+1 << "世代" << endl;
         int cnt = 0;
         for(auto& ant : ants){

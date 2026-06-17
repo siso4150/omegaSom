@@ -24,6 +24,8 @@ class DisasterMap{
 
 private:
     vector<MapCell> disasterMap;
+    vector<vector<vector<double>>> allWeather;
+    int totalTime = 2;
     const config& cfg;
     double normalize(double x,double xmin,double xmax){return (x-xmin) / (xmax-xmin);};
 
@@ -46,10 +48,17 @@ private:
         }
     }
 
+    void combineData();
+    
+
+    void vecNormalizeDynamic();
+
 public:
     DisasterMap(const config&);
     void loadFromCsv(const string&);
+    void loadDynamicData();
     void updateMap();
+    void updateData(int time);
     void vecNormalize();
     const vector<MapCell>& getDisasterMap() const {return disasterMap;};
     

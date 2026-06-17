@@ -58,9 +58,6 @@ public:
         neuronIdxTable[y][x] = val;
     }
 
-    
-
-    
     void initNeuronAcoData();
 
 };

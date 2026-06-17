@@ -3,9 +3,10 @@
 using namespace std;
 
 OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disasterMap(dMap){
-    
+    cout << seed <<  endl;
     gen.seed(seed);
     uniform_real_distribution<double> rdist(0,1);
+    
 
     //メモリ領域確保
     somMap.reserve(disasterMap.size());
@@ -37,17 +38,24 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
     //メモリ領域削減
     somMap.shrink_to_fit();
 
-    omega.assign(cfg.dimensionNum,(double)1 / cfg.dimensionNum);
+    double initialWeight = 1.0 / cfg.dimensionNum;
+    omega.assign(cfg.dimensionNum,initialWeight);
     density.assign(cfg.dimensionNum,0);
+    runningSum.assign(cfg.somWindowSize,0);
+
+    for(int n = 0; n < cfg.dimensionNum; n++){
+        omegaHistery.push_back(vector<double>(cfg.somWindowSize,0.0));
+        
+        for(int i = 0; i < cfg.somWindowSize; i++){
+            omegaHistery[n][i] = initialWeight;
+        }
+        runningSum[n] = initialWeight * cfg.somWindowSize;
+        omega[n] = initialWeight;
+    }
 
     cout << "0世代目" << endl;
     for(auto val : omega) cout << val << " ";
     cout << endl;
-
-    for(int n = 0; n < cfg.dimensionNum; n++){
-        omegaHistery.push_back(vector<double>(cfg.somWindowSize,0.0));
-    }
-    runningSum.assign(cfg.dimensionNum,0);
 
     alpha = cfg.somInitAlpha;
     nbRadius = cfg.somInitNbRadius;
@@ -60,6 +68,21 @@ void OmegaSom::onlineLearn(int t){
     //入力データをランダムに一つ選ぶ
     uniform_int_distribution<int> dist(0,disasterMap.size()-1);
     int inputIdx = dist(gen);
+
+    bool flag = false;
+    for(auto val : disasterMap[inputIdx].vec){
+        
+        cout << val << ",";
+        if(val > 1.0){
+            flag = true;
+        }
+        
+    }
+    if(flag == true){
+            std::cerr << "入力データが正しく正規化されていません" << endl;
+            abort();
+        }
+
     int BMUIdx = findBMU(inputIdx); //BMU探索
 
     onlineAdapt(BMUIdx,inputIdx); //プロトタイプベクトル（参照ベクトル）更新
@@ -141,7 +164,7 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         }else{
             double tmp = 0;
             for(int i = 0; i < cfg.dimensionNum; i++){
-                tmp += pow((density[n] / density[i]),((double)1 / (beta - 1)));
+                tmp += pow((density[n] / (density[i] + 0.000001)),((double)1 / (beta - 1)));
             }
             double newOmega = pow(tmp,-1);
             runningSum[n] -= omegaHistery[n][t % cfg.somWindowSize];
@@ -184,6 +207,24 @@ void OmegaSom::saveNeuronState(int t){
         for(int j = 2; j < somMap[i].weightVec.size();j++){
             tmp += somMap[i].weightVec[j];
         }
+
+        if(tmp >= 7){
+            cout << i << "番目のニューロン" << endl;
+            for(int n = 0; n < 7; n++){
+                cout << somMap[i].weightVec[n] << ",";
+            }
+            cout << endl;
+
+            cout << "omegaの値" << endl;
+            for(auto val : omega){
+                cout << val << ",";
+            }
+            cout << endl;
+            std::cerr << "次元数を超えた値になっています" << endl;
+            abort();
+        }
+
+
         file << tmp << ",";
         file << somMap[i].isPossible << endl;
     }

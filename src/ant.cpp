@@ -52,7 +52,7 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
             risk+= mapRef[neuronIdx].weightVec[n];
         }
 
-        if(dist % 10000 == 0){
+        if(dist % 1000000 == 0){
            
             cout << "探索をリスタート" << endl;
             restart(cfgRef.startX,cfgRef.startY);

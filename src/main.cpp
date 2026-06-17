@@ -49,15 +49,20 @@ int main(int argc, char* argv[]){
         cout << time << "世代目,";
         
         som.onlineLearn(time);
+        cout << "som.onlineLearn 終了" << endl;
         som.saveNeuronState(time);
+        cout << "som.saveNeuronState 終了" << endl;
 
-        if(time % 20 == 0 && csvCnt < 7){
+        if(time % 10 == 0 && csvCnt < 23){
 
-            //colony.run();
+            colony.run();
             
             // cout << "Read :" << targetPath << endl;
+
+            
             
             //マップの更新
+            cout << "マップの更新";
             dMap.updateData(csvCnt);
             csvCnt++;
 
@@ -67,4 +72,6 @@ int main(int argc, char* argv[]){
         }
     }
     colony.run();
+
+    cout << "全ての処理が終了" << endl;
 }
