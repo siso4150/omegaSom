@@ -38,14 +38,15 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
 
 void Colony::run(){
 
-    for(int gen = 0; gen < 10; gen++){
+    for(int gen = 0; gen < 100; gen++){
         cout << "第" << gen+1 << "世代" << endl;
         int cnt = 0;
-        for(auto& ant : ants){
-            cnt++;
-            cout << "ant" << cnt << "探索開始";
-            ant.search(*cfgPtr,*mapPtr,neuronIdxTable);
+        
+        for(size_t i = 0; i < ants.size(); i++){
+            ants[i].search(*cfgPtr,*mapPtr,neuronIdxTable);
         }
+
+        cout << "探索終了" << endl;
 
         updateSolution();
         updatePhr();

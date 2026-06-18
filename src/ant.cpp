@@ -43,7 +43,6 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
 
         if(cfgRef.goalX == cur.x && cfgRef.goalY == cur.y){//ゴールに到達したか
             route.back().d = -1;
-            cout << "->探索終了 : (dist,risk) = " << dist << "," << risk << endl;
             break;
         }
 
@@ -54,7 +53,6 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
 
         if(dist % 1000000 == 0){
            
-            cout << "探索をリスタート" << endl;
             restart(cfgRef.startX,cfgRef.startY);
             continue;
         
@@ -64,7 +62,6 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
         int dir = dirSelect();
         if(dir == -1){
             restart(cfgRef.startX,cfgRef.startY);
-            cout << "探索をリスタート" << endl;
             continue;
         }
 
