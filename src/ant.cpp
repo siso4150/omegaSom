@@ -1,13 +1,12 @@
 #include "ant.h"
 
-mt19937_64 Ant::randomGen(random_device{}());
-
-Ant::Ant(const config& cfg){
+Ant::Ant(const config& cfg, int seed){
     pVec.resize(8,0);
     route.clear();
     dist = 0;
     risk = 0;
     visit.assign(cfg.mapRow,vector<int>(cfg.mapCol,0)); //visitのメモリ確保
+    randomGen.seed(seed);
 }
 
 void Ant::initAnt(){

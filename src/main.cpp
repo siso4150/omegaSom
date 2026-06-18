@@ -49,16 +49,11 @@ int main(int argc, char* argv[]){
         cout << time << "世代目,";
         
         som.onlineLearn(time);
-        cout << "som.onlineLearn 終了" << endl;
         som.saveNeuronState(time);
-        cout << "som.saveNeuronState 終了" << endl;
 
         if(time % 10 == 0 && csvCnt < 23){
 
             colony.run();
-            
-            // cout << "Read :" << targetPath << endl;
-
             
             
             //マップの更新

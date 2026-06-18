@@ -26,9 +26,12 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
         
     }
 
+    random_device rd;
+    unsigned int baseSeed = rd();
+
     //アントの初期化
     for(int i = 0; i < cfgPtr->acoCfg.antNum; i++){
-        ants.push_back(Ant(*cfgPtr));
+        ants.push_back(Ant(*cfgPtr,baseSeed + i));
     }
 
     initNeuronAcoData();//特に,ヒューリスティック値を初期化
@@ -38,10 +41,11 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
 
 void Colony::run(){
 
-    for(int gen = 0; gen < 100; gen++){
+    for(int gen = 0; gen < 10; gen++){
         cout << "第" << gen+1 << "世代" << endl;
         int cnt = 0;
         
+        #pragma omp parallel for
         for(size_t i = 0; i < ants.size(); i++){
             ants[i].search(*cfgPtr,*mapPtr,neuronIdxTable);
         }
