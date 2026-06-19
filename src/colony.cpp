@@ -41,16 +41,14 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
 
 void Colony::run(){
 
-    for(int gen = 0; gen < 10; gen++){
-        cout << "第" << gen+1 << "世代" << endl;
+    for(int gen = 0; gen < cfgPtr->acoCfg.acoGenNum; gen++){
+        cout << "第" << gen+1 << "世代";
         int cnt = 0;
         
         #pragma omp parallel for
         for(size_t i = 0; i < ants.size(); i++){
             ants[i].search(*cfgPtr,*mapPtr,neuronIdxTable);
         }
-
-        cout << "探索終了" << endl;
 
         updateSolution();
         updatePhr();
@@ -89,18 +87,23 @@ void Colony::updatePhr(){
 
     //フェロモンの加算
     for(const auto& ant: ants){
-        if(ant.getDist() != minDist)continue; //一番いいやつだけ加算させる
+        //if(ant.getDist() != minDist)continue; //一番いいやつだけ加算させる
         double distAdd = Q / ant.getDist();
         double riskAdd = Q / ant.getRisk();
+
+        vector<vector<int>> visitRef = ant.getVisit();
 
         for(const Coord& coord : ant.getRoute()){
             if(coord.d == -1)break;
 
             int neuronIdx = neuronIdxTable[coord.y][coord.x];
+            int visitNum = visitRef[coord.y][coord.x];
+
+            if(visitNum == 0)continue;
 
             //最大値を設定
-            mapPtr->at(neuronIdx).acoData->distPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->distPhr[coord.d] + distAdd);
-            mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] + riskAdd);
+            mapPtr->at(neuronIdx).acoData->distPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->distPhr[coord.d] + (distAdd / visitNum));
+            mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] + (riskAdd / visitNum));
             
         }
     }

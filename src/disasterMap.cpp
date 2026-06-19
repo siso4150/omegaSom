@@ -159,7 +159,7 @@ void DisasterMap::vecNormalize(){
     for(int i = 0; i < disasterMap.size();i++){
         for(int n = 0; n < cfg.dimensionNum; n++){
             if(isnan(disasterMap[i].vec[n])){
-                cout << "na値検出" << endl;
+                cout << "na値検出 disasterMap.cpp:162" << endl;
                 abort();
             }
         }
@@ -194,7 +194,7 @@ void DisasterMap::vecNormalizeDynamic(){
     for(int i = 0; i < disasterMap.size();i++){
         for(int n = 0; n < cfg.dimensionNum; n++){
             if(isnan(disasterMap[i].vec[n])){
-                cout << "na値検出" << endl;
+                cout << "na値検出 disasterMap.cpp:197" << endl;
                 abort();
             }
         }

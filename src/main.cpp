@@ -51,13 +51,12 @@ int main(int argc, char* argv[]){
         som.onlineLearn(time);
         som.saveNeuronState(time);
 
-        if(time % 10 == 0 && csvCnt < 23){
+        if(time % cfg.somIterNum == 0 && csvCnt < 24){
 
             colony.run();
             
-            
             //マップの更新
-            cout << "マップの更新";
+            cout << "マップの更新:";
             dMap.updateData(csvCnt);
             csvCnt++;
 

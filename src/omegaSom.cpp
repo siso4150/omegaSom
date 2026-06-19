@@ -3,7 +3,6 @@
 using namespace std;
 
 OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disasterMap(dMap){
-    cout << seed <<  endl;
     gen.seed(seed);
     uniform_real_distribution<double> rdist(0,1);
     
@@ -25,7 +24,6 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
                 neuron.weightVec[n] = (rdist(gen));
             }
 
-            //ここやばいんじゃないか
             neuron.weightVec[0] = neuron.x;
             neuron.weightVec[1] = neuron.y;
 
@@ -72,7 +70,6 @@ void OmegaSom::onlineLearn(int t){
     bool flag = false;
     for(auto val : disasterMap[inputIdx].vec){
         
-        cout << val << ",";
         if(val > 1.0){
             flag = true;
         }
@@ -102,19 +99,37 @@ int OmegaSom::findBMU(int inputIdx){
     int bmuIdx = -1;
     double bmuDist = std::numeric_limits<double>::max();
 
+    //BMU探索の並列化
+    #pragma omp parallel
+    {
 
-    for(int i = 0; i < somMap.size(); i++){
-        double dist = 0;
-        for(int k = 0; k < cfg.dimensionNum; k++){
-            //とりあえず、全部の重みを掛ける
-            dist += pow(omega[k],beta) * ((disasterMap[inputIdx].vec[k] - somMap[i].weightVec[k]) * (disasterMap[inputIdx].vec[k] - somMap[i].weightVec[k]));
+        int privateBMUIdx = -1;
+        double privateBMUDist = std::numeric_limits<double>::max();
+
+        //並列化+nowaitで終わった順にcriticalに飛ぶ
+        #pragma omp for nowait
+        for(size_t i = 0; i < somMap.size(); i++){
+            
+            double privateDist = 0;
+            for(int k = 0; k < cfg.dimensionNum; k++){
+                privateDist += pow(omega[k],beta) * ((disasterMap[inputIdx].vec[k] - somMap[i].weightVec[k]) * (disasterMap[inputIdx].vec[k] - somMap[i].weightVec[k]));
+            } 
+            
+            if(privateDist < privateBMUDist){
+                privateBMUDist = privateDist;
+                privateBMUIdx = i;
+            }
         }
-        if(dist < bmuDist){
-            bmuDist = dist;
-            bmuIdx = i;
+
+        //ここは並列化されず、順番に処理される
+        #pragma omp critical
+        {
+            if(privateBMUDist < bmuDist){
+                bmuDist = privateBMUDist;
+                bmuIdx = privateBMUIdx;
+            }
         }
     }
-
     return bmuIdx;
 }
 
@@ -124,8 +139,12 @@ void OmegaSom::onlineAdapt(int BMUIdx,int inputVec){
 
         //近傍関数を計算
         double nb = neighborhoodFunction(BMUIdx,i);
+        
+        //2σで枝刈り
+        if(nb < 0.046)continue;
 
-        for(int k = 0; k < cfg.dimensionNum;k++){
+        //X,Y座標を変動させるかどうか 2なら変動させていない　0なら変動させてる
+        for(int k = 2; k < cfg.dimensionNum;k++){
             somMap[i].weightVec[k] = somMap[i].weightVec[k] + alpha * nb * (disasterMap[inputVec].vec[k] - somMap[i].weightVec[k]);
         }
     }
@@ -136,7 +155,7 @@ double OmegaSom::neighborhoodFunction(int BMUIdx,int pVecIdx){
     double denominator = 2 * nbRadius * nbRadius;
     double ret = exp(-1 * numeretor / denominator);
     if(isnan(ret)){
-        cerr << "nan値検出" << endl;
+        cerr << "nan値検出 omegaSom.cpp:158" << endl;
         abort();
     }
     return ret;
@@ -153,6 +172,8 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
             density[n] += nb * ((disasterMap[inputIdx].vec[n] - somMap[k].weightVec[n]) * (disasterMap[inputIdx].vec[n] - somMap[k].weightVec[n]));
         }
     }
+
+
 
     //omega_nを求める
     for(int n = 0; n < cfg.dimensionNum; n++){
@@ -173,11 +194,11 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         }
         omega[n] = runningSum[n] / cfg.somWindowSize;
     }
-    cout << "omegaHistery,";
+    
+    //1時刻で1000世代を超えるとnan値が出現する
     for(int n = 0; n < cfg.dimensionNum; n++) {
-        cout << omegaHistery[n][t % cfg.somWindowSize] << ",";
         if(isnan(omegaHistery[n][t % cfg.somWindowSize])){
-        cerr << "nan値検出" << endl;
+        cerr << "nan値検出 omegaSom.cpp:198" << endl;
         abort();
     }
     }
@@ -185,8 +206,12 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
 }
 
 void OmegaSom::updateAlphaNb(){//指数関数での減少スケジュール
-    alpha = max(cfg.somFinAlpha, cfg.somInitAlpha * exp(-(double)localIteration / tau));
-    nbRadius = max(cfg.somFinNbRadius, cfg.somInitNbRadius * exp(-(double)localIteration / tau));
+    // alpha = max(cfg.somFinAlpha, cfg.somInitAlpha * exp(-(double)localIteration / tau));
+    // nbRadius = max(cfg.somFinNbRadius, cfg.somInitNbRadius * exp(-(double)localIteration / tau));
+    
+    alpha = cfg.somInitAlpha * pow((cfg.somFinAlpha / cfg.somInitAlpha),(localIteration / cfg.somIterNum));
+    nbRadius = cfg.somInitNbRadius * pow((cfg.somFinNbRadius / cfg.somInitNbRadius),(localIteration / cfg.somIterNum));
+
     localIteration++;
 }
 

@@ -1,6 +1,6 @@
 # コンパイラとフラグ
 CXX = g++
-CXXFLAGS = -std=c++17 -g -Wall -fopenmp
+CXXFLAGS = -std=c++17 -g -Wall 
 PROJECT_ROOT = .
 INCLUDE_ROOT = include
 SRC_ROOT = src

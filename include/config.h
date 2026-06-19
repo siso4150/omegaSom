@@ -7,6 +7,7 @@ using namespace std;
 //ACOのコンフィグ
 struct AcoConfig{
     int antNum;
+    double acoGenNum;
     double acoPhrWeight;
     double acoAlpha;
     double acoBeta;
@@ -15,7 +16,15 @@ struct AcoConfig{
     double phrMin;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AcoConfig,antNum,acoPhrWeight,acoAlpha,acoBeta,evaRate,phrMax,phrMin)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AcoConfig,
+    antNum,
+    acoGenNum,
+    acoPhrWeight,
+    acoAlpha,
+    acoBeta,
+    evaRate,
+    phrMax,
+    phrMin)
 
 //共通＋SOMのコンフィグ
 struct config{
@@ -31,6 +40,7 @@ struct config{
     double somInitNbRadius;
     double somFinNbRadius;
 
+    int somIterNum;
     int somIterMax;
 
     int somWindowSize;
@@ -49,7 +59,27 @@ struct config{
     AcoConfig acoCfg;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,dimensionNum,staticDimensionNum,dynamicDimensionNum,mapRow,mapCol,somInitAlpha,somFinAlpha,somInitNbRadius,somFinNbRadius,
-    somIterMax,somWindowSize,somBeta,csvDirPath,csvOutputPath,csvOutputRoutePath,startX,startY,goalX,goalY,acoCfg)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,
+    dimensionNum,
+    staticDimensionNum,
+    dynamicDimensionNum,
+    mapRow,
+    mapCol,
+    somInitAlpha,
+    somFinAlpha,
+    somInitNbRadius,
+    somFinNbRadius,
+    somIterNum,
+    somIterMax,
+    somWindowSize,
+    somBeta,
+    csvDirPath,
+    csvOutputPath,
+    csvOutputRoutePath,
+    startX,
+    startY,
+    goalX,
+    goalY,
+    acoCfg)
 
 

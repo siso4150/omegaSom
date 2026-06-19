@@ -26,7 +26,7 @@ private:
     inline static const int dX[] = {0, 1, 1, 1, 0, -1, -1, -1};
     inline static const int dY[] = {-1, -1, 0, 1, 1, 1, 0, -1};
 
-    static mt19937_64 randomGen;
+    mt19937_64 randomGen;
 
     vector<vector<int>> visit;
     
@@ -34,7 +34,7 @@ private:
 
 public:
 
-    Ant(const config&);
+    Ant(const config&, int seed);
     void initAnt();
     void search(const config&, const vector<Neuron>&, const vector<vector<int>>&);
 
@@ -45,5 +45,6 @@ public:
     int getDist() const{return dist;};
     double getRisk()const{return risk;};
     const vector<Coord>& getRoute()const{return route;}; 
+    const vector<vector<int>>& getVisit()const{return visit;};
 };
 

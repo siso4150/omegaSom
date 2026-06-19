@@ -51,7 +51,7 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
         }
 
         if(dist % 1000000 == 0){
-           
+        
             restart(cfgRef.startX,cfgRef.startY);
             continue;
         
@@ -82,6 +82,12 @@ void Ant::calcProb(const config& cfgRef,const vector<Neuron>& mapRef, const vect
         }
         int movedNeuronIdx = tableRef[movedY][movedX];
 
+        //既に訪れているなら、移動確率を0にする
+        // if(visit[movedY][movedX] > 2){
+        //     pVec[i] = 0;
+        //     continue;
+        // }
+
         if(movedNeuronIdx >= 0 && mapRef.at(movedNeuronIdx).isPossible == true){//道路であり、通行可能
             
             double distP = mapRef[movedNeuronIdx].acoData->distPhr[i] * cfgRef.acoCfg.acoPhrWeight;
@@ -90,7 +96,6 @@ void Ant::calcProb(const config& cfgRef,const vector<Neuron>& mapRef, const vect
             pVec[i] = pow(distP+riskP,cfgRef.acoCfg.acoAlpha) * pow(mapRef[movedNeuronIdx].acoData->heurisitc[i],cfgRef.acoCfg.acoBeta);
             pVec[i] /= visit[movedY][movedX] + 1; //訪問回数に応じて選びにくくする
         }
-        
     }
 }
 
