@@ -20,6 +20,7 @@ private:
 
     int dist;
     double risk;
+    int stepCnt;
 
     Coord cur;
 
@@ -29,6 +30,7 @@ private:
     mt19937_64 randomGen;
 
     vector<vector<int>> visit;
+    vector<vector<int>> pathIdx;
     
 
 

@@ -5,7 +5,9 @@ Ant::Ant(const config& cfg, int seed){
     route.clear();
     dist = 0;
     risk = 0;
+    stepCnt = 0;
     visit.assign(cfg.mapRow,vector<int>(cfg.mapCol,0)); //visitのメモリ確保
+    pathIdx.assign(cfg.mapRow,vector<int>(cfg.mapCol,-1));
     randomGen.seed(seed);
 }
 
@@ -22,52 +24,142 @@ void Ant::restart(int x, int y){
     route.push_back({x,y,-1});
     dist = 0;
     risk = 0;
+    stepCnt = 0;
 
     //visitを0埋め
     for(int i = 0; i < visit.size();i++){
         fill(visit[i].begin(),visit[i].end(),0);
     }
+
+    for(int i = 0; i < pathIdx.size();i++){
+        fill(pathIdx[i].begin(),pathIdx[i].end(),-1);
+    }
+
+    
     
 }
 
 void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vector<vector<int>>& tableRef){
     restart(cfgRef.startX,cfgRef.startY);
-    
+
+
     while(true){
         cur.x = route.back().x;
         cur.y = route.back().y;
-        int neuronIdx = tableRef[cur.y][cur.x];
 
-        visit[cur.y][cur.x]++; //訪問回数を加算
-
-        if(cfgRef.goalX == cur.x && cfgRef.goalY == cur.y){//ゴールに到達したか
+        //ゴールしたかどうかチェック
+        if(cfgRef.goalX == cur.x && cfgRef.goalY == cur.y){
             route.back().d = -1;
             break;
         }
 
-        dist++;
-        for(int n = 2; n < cfgRef.dimensionNum; n++){
-            risk+= mapRef[neuronIdx].weightVec[n];
-        }
-
-        if(dist % 1000000 == 0){
-        
-            restart(cfgRef.startX,cfgRef.startY);
+        //最大移動回数のチェック
+        stepCnt++;
+        if(stepCnt > 100000){
+            restart(cfgRef.startX, cfgRef.startY);
+            pathIdx[cfgRef.startY][cfgRef.startX] = 0;
             continue;
-        
         }
 
+        //セルの選択
         calcProb(cfgRef,mapRef,tableRef);
         int dir = dirSelect();
         if(dir == -1){
             restart(cfgRef.startX,cfgRef.startY);
+            pathIdx[cfgRef.startY][cfgRef.startX] = 0;
             continue;
         }
 
+        int neuronIdx = tableRef[cur.y][cur.x];
+
         route.back().d = dir;
-        route.push_back({cur.x + dX[dir],cur.y + dY[dir],-1});
-    
+        int nextX = cur.x + dX[dir];
+        int nextY = cur.y + dY[dir];
+
+        //既に訪問している（ループなら巻き戻す)
+        if(pathIdx[nextY][nextX] != -1){
+            
+            int loopStartIdx = pathIdx[nextY][nextX];
+
+            while(route.size() > loopStartIdx + 1){
+                Coord erase = route.back();
+                pathIdx[erase.y][erase.x] = -1; // マップの記憶を消す
+
+                int eraseNeuronIdx = tableRef[erase.y][erase.x];
+                for(int n = 2; n < cfgRef.dimensionNum; n++){
+                    risk -= mapRef[eraseNeuronIdx].weightVec[n];
+                }
+                dist--;
+                route.pop_back();
+            }
+        }else{
+            pathIdx[nextY][nextX] = route.size(); // 次のインデックスを記録
+            route.push_back({nextX, nextY, -1});
+            
+            visit[nextY][nextX]++;
+            dist++;
+            
+            int nextNeuronIdx = tableRef[nextY][nextX];
+            for(int n = 2; n < cfgRef.dimensionNum; n++){
+                risk += mapRef[nextNeuronIdx].weightVec[n];
+            }
+        }
     }
+    
+    
+    // while(true){
+    //     cur.x = route.back().x;
+    //     cur.y = route.back().y;
+    //     int neuronIdx = tableRef[cur.y][cur.x];
+
+    //     if(pathIdx[cur.y][cur.x] != -1){//訪問済みかどうか
+    //         int loopStartIdx = pathIdx[cur.y][cur.x];
+
+    //         while(route.size() > loopStartIdx + 1){
+    //             Coord erase = route.back();
+    //             pathIdx[erase.y][erase.x] = -1;
+
+    //             int eraseNeuronIdx = tableRef[erase.y][erase.x];
+    //             for(int n = 2; n < cfgRef.dimensionNum; n++){
+    //                 risk -= mapRef[eraseNeuronIdx].weightVec[n];
+    //             }
+    //             route.pop_back();
+    //         }
+    //     }else{
+    //         pathIdx[cur.y][cur.x] = route.size();
+
+    //         visit[cur.y][cur.x]++; //訪問回数を加算
+
+    //         if(cfgRef.goalX == cur.x && cfgRef.goalY == cur.y){//ゴールに到達したか
+    //             route.back().d = -1;
+    //             break;
+    //         }
+
+    //         dist++;
+    //         for(int n = 2; n < cfgRef.dimensionNum; n++){
+    //             risk += mapRef[neuronIdx].weightVec[n];
+    //         }
+
+    //         if(dist % 100000 == 0){
+            
+    //             restart(cfgRef.startX,cfgRef.startY);
+    //             continue;
+            
+    //         }
+
+    //         calcProb(cfgRef,mapRef,tableRef);
+    //         int dir = dirSelect();
+    //         if(dir == -1){
+    //             restart(cfgRef.startX,cfgRef.startY);
+    //             pathIdx[cfgRef.startY][cfgRef.startX] = 0;
+    //             continue;
+    //         }
+
+    //         route.back().d = dir;
+    //         route.push_back({cur.x + dX[dir],cur.y + dY[dir],-1});
+    //     }
+    // }
+    
 }
 
 void Ant::calcProb(const config& cfgRef,const vector<Neuron>& mapRef, const vector<vector<int>>& tableRef){

@@ -10,8 +10,8 @@
     "somInitNbRadius" : 400,
     "somFinNbRadius" : 1,
 
-    "somIterNum" : 1000,
-    "somIterMax" : 2400,
+    "somIterNum" : 50,
+    "somIterMax" : 1200,
 
     "somWindowSize" : 10,
 
@@ -26,9 +26,11 @@
     "goalX" : 728,
     "goalY" : 628,
 
+    "somSeed" : 42,
+
     "acoCfg":{
-        "antNum" : 1,
-        "acoGenNum" : 1,
+        "antNum" : 100,
+        "acoGenNum" : 100,
         "acoPhrWeight" : 0.5,
         "acoAlpha" : 1.0,
         "acoBeta" : 2.0,

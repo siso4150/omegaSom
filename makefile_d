@@ -1,6 +1,7 @@
 # コンパイラとフラグ
 CXX = g++
-CXXFLAGS = -std=c++17 -g -Wall 
+CXXFLAGS = -std=c++17 -g -Wall -fsanitize=address 
+LDFLAGS  = -fsanitize=address 
 PROJECT_ROOT = .
 INCLUDE_ROOT = include
 SRC_ROOT = src

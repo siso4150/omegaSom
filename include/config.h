@@ -56,6 +56,8 @@ struct config{
     int goalX;
     int goalY;
 
+    int somSeed;
+
     AcoConfig acoCfg;
 };
 
@@ -80,6 +82,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,
     startY,
     goalX,
     goalY,
+    somSeed,
     acoCfg)
 
 

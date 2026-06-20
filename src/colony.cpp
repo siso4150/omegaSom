@@ -35,8 +35,6 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
     }
 
     initNeuronAcoData();//特に,ヒューリスティック値を初期化
-
-
 }
 
 void Colony::run(){
@@ -73,8 +71,8 @@ void Colony::updatePhr(){
                 continue;
             }
             if(neuronIdxTable[Y][X] >= 0){
-                neuron.acoData->distPhr[j] = max(neuron.acoData->distPhr[j]*cfgPtr->acoCfg.evaRate,cfgPtr->acoCfg.phrMin);
-                neuron.acoData->riskPhr[j] = max(neuron.acoData->riskPhr[j]*cfgPtr->acoCfg.evaRate,cfgPtr->acoCfg.phrMin);
+                neuron.acoData->distPhr[j] = max(neuron.acoData->distPhr[j]*rate,cfgPtr->acoCfg.phrMin);
+                neuron.acoData->riskPhr[j] = max(neuron.acoData->riskPhr[j]*rate,cfgPtr->acoCfg.phrMin);
             }
         }
     }
@@ -92,19 +90,28 @@ void Colony::updatePhr(){
         double riskAdd = Q / ant.getRisk();
 
         vector<vector<int>> visitRef = ant.getVisit();
+        
+        //加算済みかどうかをチェックする
+        // for(size_t i = 0; i < isAlreadyAdd.size(); i++){
+        //     fill(isAlreadyAdd[i].begin(),isAlreadyAdd[i].end(),false);
+        // }
+        
 
         for(const Coord& coord : ant.getRoute()){
             if(coord.d == -1)break;
 
-            int neuronIdx = neuronIdxTable[coord.y][coord.x];
-            int visitNum = visitRef[coord.y][coord.x];
+            //一度通った所は加算しない
+            // if(isAlreadyAdd[coord.y][coord.x] == false){
 
-            if(visitNum == 0)continue;
+                int neuronIdx = neuronIdxTable[coord.y][coord.x];
+                int visitNum = visitRef[coord.y][coord.x];
 
-            //最大値を設定
-            mapPtr->at(neuronIdx).acoData->distPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->distPhr[coord.d] + (distAdd / visitNum));
-            mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] + (riskAdd / visitNum));
-            
+                //最大値を設定
+                mapPtr->at(neuronIdx).acoData->distPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->distPhr[coord.d] + (distAdd));
+                mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] = min(cfgPtr->acoCfg.phrMax,mapPtr->at(neuronIdx).acoData->riskPhr[coord.d] + (riskAdd));
+
+                // isAlreadyAdd[coord.y][coord.x] = true;
+            //}
         }
     }
 }
@@ -134,6 +141,26 @@ void Colony::terminateRun(){
     minDist = 1e9;
     minRisk = 1e9;
     minCost = 1e9;
+
+
+    //時刻ごとの探索が終わった後、フェロモンを蒸発させる？
+    double rate = 0.1;//９割飛ばす
+    for(auto& neuron : *mapPtr){
+        if(!neuron.acoData)continue;
+        for (size_t j = 0; j < neuron.acoData->distPhr.size(); ++j) {
+            int X = neuron.x + dX[j];
+            int Y = neuron.y + dY[j];
+
+            //範囲外かつ、道がある方向にのみ蒸発処理
+            if(!(X >= 0 && Y >= 0 && X < cfgPtr->mapCol && Y < cfgPtr->mapRow)){
+                continue;
+            }
+            if(neuronIdxTable[Y][X] >= 0){
+                neuron.acoData->distPhr[j] = max(neuron.acoData->distPhr[j]*rate,cfgPtr->acoCfg.phrMin);
+                neuron.acoData->riskPhr[j] = max(neuron.acoData->riskPhr[j]*rate,cfgPtr->acoCfg.phrMin);
+            }
+        }
+    }
 }
 
 void Colony::resultToCsv(){

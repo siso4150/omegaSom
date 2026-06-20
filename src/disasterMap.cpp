@@ -136,7 +136,7 @@ void DisasterMap::vecNormalize(){
         double maxVal = -std::numeric_limits<double>::infinity();
         double minVal = std::numeric_limits<double>::infinity();
 
-        for(int i = 1; i < disasterMap.size();i++){
+        for(int i = 0; i < disasterMap.size();i++){
             maxVal = std::max(disasterMap[i].vec[n],maxVal);
             minVal = std::min(disasterMap[i].vec[n],minVal);
         }
@@ -157,7 +157,7 @@ void DisasterMap::vecNormalize(){
 
     //nanチェック
     for(int i = 0; i < disasterMap.size();i++){
-        for(int n = 0; n < cfg.dimensionNum; n++){
+        for(int n = 0; n < cfg.staticDimensionNum; n++){
             if(isnan(disasterMap[i].vec[n])){
                 cout << "na値検出 disasterMap.cpp:162" << endl;
                 abort();

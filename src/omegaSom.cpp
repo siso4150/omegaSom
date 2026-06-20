@@ -3,7 +3,7 @@
 using namespace std;
 
 OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disasterMap(dMap){
-    gen.seed(seed);
+    gen.seed(cfg.somSeed);
     uniform_real_distribution<double> rdist(0,1);
     
 
@@ -173,25 +173,19 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         }
     }
 
-
-
     //omega_nを求める
     for(int n = 0; n < cfg.dimensionNum; n++){
         
-        if(density[n] == 0){
-            runningSum[n] -= omegaHistery[n][t % cfg.somWindowSize];
-            omegaHistery[n][t % cfg.somWindowSize] = 0;
-            continue;
-        }else{
-            double tmp = 0;
-            for(int i = 0; i < cfg.dimensionNum; i++){
-                tmp += pow((density[n] / (density[i] + 0.000001)),((double)1 / (beta - 1)));
-            }
-            double newOmega = pow(tmp,-1);
-            runningSum[n] -= omegaHistery[n][t % cfg.somWindowSize];
-            omegaHistery[n][t % cfg.somWindowSize] = newOmega;
-            runningSum[n] += newOmega;
+        
+        double tmp = 0;
+        for(int i = 0; i < cfg.dimensionNum; i++){
+            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (beta - 1)));
         }
+        double newOmega = pow(tmp,-1);
+        runningSum[n] -= omegaHistery[n][t % cfg.somWindowSize];
+        omegaHistery[n][t % cfg.somWindowSize] = newOmega;
+        runningSum[n] += newOmega;
+        
         omega[n] = runningSum[n] / cfg.somWindowSize;
     }
     
@@ -209,8 +203,8 @@ void OmegaSom::updateAlphaNb(){//指数関数での減少スケジュール
     // alpha = max(cfg.somFinAlpha, cfg.somInitAlpha * exp(-(double)localIteration / tau));
     // nbRadius = max(cfg.somFinNbRadius, cfg.somInitNbRadius * exp(-(double)localIteration / tau));
     
-    alpha = cfg.somInitAlpha * pow((cfg.somFinAlpha / cfg.somInitAlpha),(localIteration / cfg.somIterNum));
-    nbRadius = cfg.somInitNbRadius * pow((cfg.somFinNbRadius / cfg.somInitNbRadius),(localIteration / cfg.somIterNum));
+    alpha = cfg.somInitAlpha * pow((cfg.somFinAlpha / cfg.somInitAlpha),((double)localIteration / cfg.somIterNum));
+    nbRadius = cfg.somInitNbRadius * pow((cfg.somFinNbRadius / cfg.somInitNbRadius),((double)localIteration / cfg.somIterNum));
 
     localIteration++;
 }

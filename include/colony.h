@@ -30,6 +30,8 @@ private:
     double maxToGoal;
     double minToGoal;
 
+    // vector<vector<bool>> isAlreadyAdd;
+
     vector<vector<Coord>> bestRouteHistery;
 
     int runCnt;

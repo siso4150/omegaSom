@@ -71,7 +71,7 @@ public:
     double neighborhoodFunction(int,int); //近傍関数
     double calcNeuronDist(int,int); //両ノードの距離を計算
 
-    void resetLocalIter(){localIteration = 0;};
+    void resetLocalIter(){localIteration = 1;};
 
     vector<Neuron>& getSomMap(){return somMap;};
     
