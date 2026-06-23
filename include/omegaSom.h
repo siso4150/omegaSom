@@ -37,6 +37,8 @@ private:
     vector<double> density; //次元ごとの密集度
     vector<vector<double>> omegaHistery; //次元重みの履歴
     vector<double> runningSum; //次元重みの計算置き場
+
+    vector<double> preCalcOmega; //オメガの計算用
     
 
     const config& cfg; //コンフィグ用参照

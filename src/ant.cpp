@@ -21,6 +21,7 @@ void Ant::initAnt(){
 
 void Ant::restart(int x, int y){
     route.clear();
+    route.reserve(100000);
     route.push_back({x,y,-1});
     dist = 0;
     risk = 0;
@@ -42,7 +43,6 @@ void Ant::restart(int x, int y){
 void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vector<vector<int>>& tableRef){
     restart(cfgRef.startX,cfgRef.startY);
 
-
     while(true){
         cur.x = route.back().x;
         cur.y = route.back().y;
@@ -50,6 +50,7 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
         //ゴールしたかどうかチェック
         if(cfgRef.goalX == cur.x && cfgRef.goalY == cur.y){
             route.back().d = -1;
+            route.shrink_to_fit();
             break;
         }
 
@@ -100,6 +101,7 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
             dist++;
             
             int nextNeuronIdx = tableRef[nextY][nextX];
+            
             for(int n = 2; n < cfgRef.dimensionNum; n++){
                 risk += mapRef[nextNeuronIdx].weightVec[n];
             }

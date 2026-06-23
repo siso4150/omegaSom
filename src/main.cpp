@@ -22,7 +22,7 @@ int main(int argc, char* argv[]){
     //ファイルの読み込み
     ifstream f("/home/sakai/cppfile/omegaSOM/json/sample.json");
     if (!f.is_open()) {
-        cerr << "Error: Failed to open " << config_file << endl;
+        cerr << "Error: Failed to open " << config_file << "\n";
         return 1;
     }
 
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]){
     config cfg = data.get<config>(); //構造体へ代入(config.hppでマクロ使用)
 
     DisasterMap dMap(cfg);
-    cout << "csvデータの読み込み中" << endl;
+    cout << "csvデータの読み込み中" << "\n";
     dMap.loadFromCsv("/home/sakai/cppfile/omegaSOM/csv/mesh_base.csv");
     dMap.loadDynamicData();
 
@@ -40,13 +40,16 @@ int main(int argc, char* argv[]){
 
     //HazardManager hazardManager(cfg,&som,&colony);
 
-    cout << "初期化終了" << endl;
+    cout << "初期化終了" << "\n";
 
     
 
     int csvCnt = 1;
     for(int time = 1; time <= cfg.somIterMax; time++){
-        cout << time << "世代目,";
+        if(time % 100 == 0){
+            cout << time << "世代目:";
+        }
+        
         
         som.onlineLearn(time);
         som.saveNeuronState(time);
@@ -67,5 +70,5 @@ int main(int argc, char* argv[]){
     }
     colony.run();
 
-    cout << "全ての処理が終了" << endl;
+    cout << "全ての処理が終了" << "\n";
 }

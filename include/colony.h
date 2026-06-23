@@ -44,7 +44,7 @@ public:
 
     void run();
     void updatePhr();
-    void updateSolution();
+    void updateSolution(int);
 
     void terminateRun();
 

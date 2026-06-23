@@ -70,7 +70,7 @@ void DisasterMap::loadDynamicData(){
         if(!ifs.is_open()){
             std::cerr << fileName << "を開けませんでした" << endl;
         }else{
-            std::cout << fileName <<  "読み込み" <<  endl;
+            std::cout << fileName <<  "読み込み" <<  "\n";
         }
 
         string line;
@@ -126,7 +126,7 @@ void DisasterMap::updateData(int time){
             disasterMap[i].vec[cfg.staticDimensionNum+j] = allWeather[time][i][j];
         }
     }
-    cout << "weatehr_" << time << "適用" <<  endl;
+    cout << "weatehr_" << time << "適用" <<  "\n";
     vecNormalizeDynamic();
 }
 

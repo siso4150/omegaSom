@@ -40,7 +40,9 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
 void Colony::run(){
 
     for(int gen = 0; gen < cfgPtr->acoCfg.acoGenNum; gen++){
-        cout << "第" << gen+1 << "世代";
+        if(gen % 100 == 0){
+            cout << "第" << gen+1 << "世代";
+        }
         int cnt = 0;
         
         #pragma omp parallel for
@@ -48,7 +50,7 @@ void Colony::run(){
             ants[i].search(*cfgPtr,*mapPtr,neuronIdxTable);
         }
 
-        updateSolution();
+        updateSolution(gen);
         updatePhr();
     }
     resultToCsv();
@@ -116,7 +118,7 @@ void Colony::updatePhr(){
     }
 }
 
-void Colony::updateSolution(){
+void Colony::updateSolution(int time){
     for(const auto& ant : ants){
         double cost = ant.getDist() + ant.getRisk();
         
@@ -131,11 +133,13 @@ void Colony::updateSolution(){
             }
         }
     }
-    cout << "現在までの最適解 距離:" << minDist << " リスク:" << minRisk << " コスト:" << minCost << endl;
+    if(time % 100 == 0){
+        cout << "現在までの最適解 距離:" << minDist << " リスク:" << minRisk << " コスト:" << minCost << "\n";
+    }
 }
 
 void Colony::terminateRun(){
-    cout << "このマップでの最適解 距離:" << minDist << " リスク:" << minRisk << " コスト:" << minCost << endl;
+    cout << "このマップでの最適解 距離:" << minDist << " リスク:" << minRisk << " コスト:" << minCost << "\n";
     bestRouteHistery.push_back(bestRoute);
     bestRoute.clear();
     minDist = 1e9;
@@ -144,7 +148,7 @@ void Colony::terminateRun(){
 
 
     //時刻ごとの探索が終わった後、フェロモンを蒸発させる？
-    double rate = 0.1;//９割飛ばす
+    double rate = 0.05;//9割5分飛ばす
     for(auto& neuron : *mapPtr){
         if(!neuron.acoData)continue;
         for (size_t j = 0; j < neuron.acoData->distPhr.size(); ++j) {
@@ -165,12 +169,12 @@ void Colony::terminateRun(){
 
 void Colony::resultToCsv(){
     ostringstream oss;
-    oss << cfgPtr->csvOutputRoutePath << "route_" << setfill('0') << setw(4) << runCnt << ".csv";
+    oss << cfgPtr->csvOutputRoutePath << "route_" << setfill('0') << setw(6) << runCnt << ".csv";
     string target = oss.str();
 
     ofstream file(target);
     if (!file.is_open()) {
-        std::cerr << "Error: ファイルを開けませんでした: " << target << endl;;
+        std::cerr << "Error: ファイルを開けませんでした: " << target << "\n";;
         return;
     }
 
@@ -179,7 +183,7 @@ void Colony::resultToCsv(){
         file << c.x << "," << c.y << "\n";
     }
     file.close();
-    cout << target << "に結果を出力" << endl;
+    cout << target << "に結果を出力" << "\n";
 }   
 
 void Colony::initNeuronAcoData(){//とりあえずゴールまでの距離だけでヒューリスティック値を付ける

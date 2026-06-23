@@ -1,3 +1,5 @@
 release/obj/*.o
 degug/obj/*.o
 output/*.csv
+output/route/*.csv
+csv/*.csv
