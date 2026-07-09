@@ -21,7 +21,7 @@ void Ant::initAnt(){
 
 void Ant::restart(int x, int y){
     route.clear();
-    route.reserve(100000);
+    route.reserve(10000);
     route.push_back({x,y,-1});
     dist = 0;
     risk = 0;
@@ -50,7 +50,8 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
         //ゴールしたかどうかチェック
         if(cfgRef.goalX == cur.x && cfgRef.goalY == cur.y){
             route.back().d = -1;
-            route.shrink_to_fit();
+            
+            calcRisk(cfgRef,mapRef,tableRef);
             break;
         }
 
@@ -86,10 +87,6 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
                 Coord erase = route.back();
                 pathIdx[erase.y][erase.x] = -1; // マップの記憶を消す
 
-                int eraseNeuronIdx = tableRef[erase.y][erase.x];
-                for(int n = 2; n < cfgRef.dimensionNum; n++){
-                    risk -= mapRef[eraseNeuronIdx].weightVec[n];
-                }
                 dist--;
                 route.pop_back();
             }
@@ -102,9 +99,6 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
             
             int nextNeuronIdx = tableRef[nextY][nextX];
             
-            for(int n = 2; n < cfgRef.dimensionNum; n++){
-                risk += mapRef[nextNeuronIdx].weightVec[n];
-            }
         }
     }
     
@@ -162,6 +156,24 @@ void Ant::search(const config& cfgRef, const vector<Neuron>& mapRef, const vecto
     //     }
     // }
     
+}
+
+void Ant::calcRisk(const config& cfgRef,const vector<Neuron>& mapRef,const vector<vector<int>>& tableRef){
+    
+    //対数加算
+    for(auto& coord : route){
+        int nextNeuronIdx = tableRef[coord.y][coord.x];
+        for(int n = 2; n < cfgRef.dimensionNum; n++){
+            double r = mapRef[nextNeuronIdx].weightVec[n];
+            double sur = std::max(1.0 - r,1e-10);
+            risk += -std::log(sur);
+        }
+    }
+
+    //単純加算
+    // for(int n = 2; n < cfgRef.dimensionNum; n++){
+    //     risk += mapRef[nextNeuronIdx].weightVec[n];
+    // }
 }
 
 void Ant::calcProb(const config& cfgRef,const vector<Neuron>& mapRef, const vector<vector<int>>& tableRef){

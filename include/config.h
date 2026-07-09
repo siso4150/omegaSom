@@ -48,8 +48,9 @@ struct config{
     double somBeta;
 
     string csvDirPath;
-    string csvOutputPath;
-    string csvOutputRoutePath;
+    string binOutputPath;
+    string binOutputRoutePath;
+    string binOutputParamPath;
 
     int startX;
     int startY;
@@ -76,8 +77,9 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,
     somWindowSize,
     somBeta,
     csvDirPath,
-    csvOutputPath,
-    csvOutputRoutePath,
+    binOutputPath,
+    binOutputRoutePath,
+    binOutputParamPath,
     startX,
     startY,
     goalX,

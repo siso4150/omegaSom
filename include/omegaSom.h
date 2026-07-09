@@ -10,6 +10,7 @@
 #include <memory>
 
 
+
 using namespace std;
 
 struct Neuron{
@@ -21,6 +22,13 @@ struct Neuron{
     double riskval;
 
     unique_ptr<AcoData> acoData;
+};
+
+struct neuronState{//ニューロン状態をバイナリ出力するための構造体
+    int32_t x;
+    int32_t y;
+    float riskSum;
+    int32_t possible;
 };
 
 class OmegaSom{

@@ -7,6 +7,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 
 using namespace std;
@@ -14,20 +15,25 @@ using json = nlohmann::json;
 
 int main(int argc, char* argv[]){
     
-    string config_file = "json/sample.json";
+    string config_file = "/home/sakai/cppfile/omegaSOM/json/sample.json";
     if(argc >= 2){//コマンドラインにjsonが指定されている時
         config_file = argv[1];
     }
 
     //ファイルの読み込み
-    ifstream f("/home/sakai/cppfile/omegaSOM/json/sample.json");
+    ifstream f(config_file);
     if (!f.is_open()) {
         cerr << "Error: Failed to open " << config_file << "\n";
         return 1;
     }
 
     json data = json::parse(f);
-    config cfg = data.get<config>(); //構造体へ代入(config.hppでマクロ使用)
+    config cfg = data.get<config>(); //構造体へ代入(Bconfig.hppでマクロ使用)
+
+    //フォルダ作成
+    std::filesystem::create_directories(cfg.binOutputPath);
+    std::filesystem::create_directories(cfg.binOutputRoutePath);
+    std::filesystem::create_directories(cfg.binOutputParamPath);
 
     DisasterMap dMap(cfg);
     cout << "csvデータの読み込み中" << "\n";
@@ -46,8 +52,8 @@ int main(int argc, char* argv[]){
 
     int csvCnt = 1;
     for(int time = 1; time <= cfg.somIterMax; time++){
-        if(time % 100 == 0){
-            cout << time << "世代目:";
+        if(time%10==0){
+            std::cout << time << "世代目\n";
         }
         
         
@@ -69,6 +75,7 @@ int main(int argc, char* argv[]){
         }
     }
     colony.run();
+    colony.resultParam();
 
     cout << "全ての処理が終了" << "\n";
 }

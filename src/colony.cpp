@@ -34,14 +34,16 @@ Colony::Colony(const config& cfg, vector<Neuron>& map): cfgPtr(&cfg),mapPtr(&map
         ants.push_back(Ant(*cfgPtr,baseSeed + i));
     }
 
+    
+
     initNeuronAcoData();//特に,ヒューリスティック値を初期化
 }
 
 void Colony::run(){
 
     for(int gen = 0; gen < cfgPtr->acoCfg.acoGenNum; gen++){
-        if(gen % 100 == 0){
-            cout << "第" << gen+1 << "世代";
+        if(gen % 10 == 0){
+            cout << "第" << gen+1 << "世代\n";
         }
         int cnt = 0;
         
@@ -53,9 +55,10 @@ void Colony::run(){
         updateSolution(gen);
         updatePhr();
     }
-    resultToCsv();
+    outputRoute();
     runCnt++;
     terminateRun();
+    
 }
 
 void Colony::updatePhr(){
@@ -81,8 +84,7 @@ void Colony::updatePhr(){
 
     //Q値の更新
     if (minCost > 0) {
-        int k = static_cast<int>(std::log10(minCost)) + 1;
-        Q = std::pow(10, k);
+        Q = minCost;
     }
 
     //フェロモンの加算
@@ -133,13 +135,16 @@ void Colony::updateSolution(int time){
             }
         }
     }
-    if(time % 100 == 0){
+    if(time % 10 == 0){
         cout << "現在までの最適解 距離:" << minDist << " リスク:" << minRisk << " コスト:" << minCost << "\n";
     }
 }
 
 void Colony::terminateRun(){
     cout << "このマップでの最適解 距離:" << minDist << " リスク:" << minRisk << " コスト:" << minCost << "\n";
+    //各種数値を出力
+    result.push_back({(double)minDist,(double)minRisk,(double)minCost});
+    
     bestRouteHistery.push_back(bestRoute);
     bestRoute.clear();
     minDist = 1e9;
@@ -148,7 +153,7 @@ void Colony::terminateRun(){
 
 
     //時刻ごとの探索が終わった後、フェロモンを蒸発させる？
-    double rate = 0.05;//9割5分飛ばす
+    double rate = 0.0;//100%飛ばす
     for(auto& neuron : *mapPtr){
         if(!neuron.acoData)continue;
         for (size_t j = 0; j < neuron.acoData->distPhr.size(); ++j) {
@@ -167,24 +172,82 @@ void Colony::terminateRun(){
     }
 }
 
-void Colony::resultToCsv(){
+// void Colony::outputRoute(){
+//     ostringstream oss;
+//     oss << cfgPtr->binOutputRoutePath << "route_" << setfill('0') << setw(6) << runCnt << ".csv";
+//     string target = oss.str();
+
+//     ofstream file(target);
+//     if (!file.is_open()) {
+//         std::cerr << "Error: ファイルを開けませんでした: " << target << "\n";;
+//         return;
+//     }
+
+//     file << "x,y" << "\n";
+//     for(auto& c : bestRoute){
+//         file << c.x << "," << c.y << "\n";
+//     }
+//     file.close();
+//     cout << target << "に結果を出力" << "\n";
+// }
+
+void Colony::outputRoute(){
     ostringstream oss;
-    oss << cfgPtr->csvOutputRoutePath << "route_" << setfill('0') << setw(6) << runCnt << ".csv";
+    oss << cfgPtr->binOutputRoutePath << "route_" << setfill('0') << setw(6) << runCnt << ".bin";
     string target = oss.str();
 
-    ofstream file(target);
-    if (!file.is_open()) {
-        std::cerr << "Error: ファイルを開けませんでした: " << target << "\n";;
-        return;
-    }
-
-    file << "x,y" << "\n";
+    ofstream outFile(target,std::ios::binary);
     for(auto& c : bestRoute){
-        file << c.x << "," << c.y << "\n";
+        saveCoord sc = {c.x,c.y};
+        if(!outFile.is_open()){
+            std::cerr << "error" << endl;
+        }
+        outFile.write(reinterpret_cast<const char*>(&sc),sizeof(saveCoord));
     }
-    file.close();
-    cout << target << "に結果を出力" << "\n";
-}   
+    outFile.close();
+}
+
+// void Colony::resultParam(){
+//     ostringstream oss;
+//     oss << cfgPtr-binOutputParamPath << "param.csv";
+//     string target = oss.str();
+
+//     ofstream file(target);
+//     if (!file.is_open()) {
+//         std::cerr << "Error: ファイルを開けませんでした: " << target << "\n";;
+//         return;
+//     }
+
+//     file << "minDist,minRisk,minCost" << "\n";
+//     for(int i = 0; i < result.size(); i++){
+//         for(auto& val : result[i]){
+//             file << val << ",";
+//         }
+//         file << "\n";
+//     }
+
+//     file.close();
+//     cout << target <<  "に距離、リスク、コストを出力" << endl;
+// }
+
+void Colony::resultParam(){//ACOが作成した経路の指標を一括出力
+    ostringstream oss;
+    oss << cfgPtr->binOutputParamPath << "param.bin";
+    string target = oss.str();
+
+    ofstream outFile(target,std::ios::binary);
+    for(int32_t i = 0; i < result.size(); i++){
+        saveParam sp = {i,static_cast<int32_t>(result[i][0]),
+            static_cast<float>(result[i][1]),static_cast<float>(result[i][2])};
+        if(outFile.is_open()){
+            outFile.write(reinterpret_cast<const char*>(&sp),sizeof(saveParam));
+        }
+    }
+    outFile.close();
+}
+
+
+
 
 void Colony::initNeuronAcoData(){//とりあえずゴールまでの距離だけでヒューリスティック値を付ける
     for(int i = 0; i < mapPtr->size(); i++){

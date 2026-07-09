@@ -10,32 +10,33 @@
     "somInitNbRadius" : 400,
     "somFinNbRadius" : 1,
 
-    "somIterNum" : 50,
-    "somIterMax" : 1200,
+    "somIterNum" : 10,
+    "somIterMax" : 240,
 
     "somWindowSize" : 10,
 
     "somBeta" : 1.25,
 
     "csvDirPath" : "/home/sakai/cppfile/omegaSOM/csv/",
-    "csvOutputPath" : "/home/sakai/cppfile/omegaSOM/output/",
-    "csvOutputRoutePath" : "/home/sakai/cppfile/omegaSOM/output/route/",
+    "binOutputPath" : "/home/sakai/cppfile/som_csv/sample/",
+    "binOutputRoutePath" : "/home/sakai/cppfile/som_csv/sample/route/",
+    "binOutputParamPath" : "/home/sakai/cppfile/som_csv/sample/result/",
 
-    "startX" : 80,
-    "startY" : 302,
-    "goalX" : 728,
-    "goalY" : 628,
+    "startX" : 767,
+    "startY" : 100,
+    "goalX" : 31,
+    "goalY" : 713,
 
     "somSeed" : 42,
 
     "acoCfg":{
-        "antNum" : 100,
-        "acoGenNum" : 100,
+        "antNum" : 10,
+        "acoGenNum" : 10,
         "acoPhrWeight" : 0.5,
         "acoAlpha" : 1.0,
         "acoBeta" : 2.0,
         "evaRate" : 0.5,
-        "phrMax" : 10.0,
+        "phrMax" : 5.0,
         "phrMin" : 0.1
     }
 }

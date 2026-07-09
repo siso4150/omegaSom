@@ -44,6 +44,8 @@ public:
     int dirSelect();
     void restart(int,int);
 
+    void calcRisk(const config& cfgRef, const vector<Neuron>& mapRef,const vector<vector<int>>& tableRef);
+
     int getDist() const{return dist;};
     double getRisk()const{return risk;};
     const vector<Coord>& getRoute()const{return route;}; 

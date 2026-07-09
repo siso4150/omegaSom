@@ -201,9 +201,9 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         if(isnan(omegaHistery[n][t % cfg.somWindowSize])){
         cerr << "nan値検出 omegaSom.cpp:198" << "\n";
         abort();
+        }
     }
-    }
-    cout << "\n";
+
 }
 
 void OmegaSom::updateAlphaNb(){//指数関数での減少スケジュール
@@ -216,42 +216,52 @@ void OmegaSom::updateAlphaNb(){//指数関数での減少スケジュール
     localIteration++;
 }
 
-void OmegaSom::saveNeuronState(int t){
-    ostringstream oss;
+// void OmegaSom::saveNeuronState(int t){
+//     ostringstream oss;
     
-    oss << cfg.csvOutputPath << "neuron_gen_" << setfill('0') << setw(6) << t << ".csv";
+//     oss << cfg.csvOutputPath << "neuron_gen_" << setfill('0') << setw(6) << t << ".csv";
+//     string filePath = oss.str();
+
+//     ofstream file(filePath);
+//     if (!file.is_open()) return;
+
+//     file << "x,y,risk,isPossible\n";
+
+//     for(int i = 0; i < somMap.size(); i++){
+//         file << somMap[i].x << "," << somMap[i].y << ",";
+//         double tmp = 0;
+//         for(int j = 2; j < somMap[i].weightVec.size();j++){
+//             tmp += somMap[i].weightVec[j];
+//         }
+
+//         file << tmp << "," << somMap[i].isPossible << "\n";
+//     }
+//     file.close();
+// }
+
+void OmegaSom::saveNeuronState(int t){//バイナリ書き込み
+    ostringstream oss;
+    oss << cfg.binOutputPath << "neuron_gen_" << setfill('0') << setw(6) << t << ".bin";
     string filePath = oss.str();
 
-    ofstream file(filePath);
-    if (!file.is_open()) return;
+    ofstream outFile(filePath,std::ios::binary);//ファイルのオープン
 
-    file << "x,y,risk,isPossible\n";
-
-    for(int i = 0; i < somMap.size(); i++){
-        file << somMap[i].x << "," << somMap[i].y << ",";
+    for(size_t i = 0; i < somMap.size(); i++){
         double tmp = 0;
-        for(int j = 2; j < somMap[i].weightVec.size();j++){
+        for(size_t j = 2; j < somMap[i].weightVec.size(); j++){
             tmp += somMap[i].weightVec[j];
         }
 
-        // if(tmp >= 7){
-        //     cout << i << "番目のニューロン" << endl;
-        //     for(int n = 0; n < 7; n++){
-        //         cout << somMap[i].weightVec[n] << ",";
-        //     }
-        //     cout << endl;
+        if(outFile.is_open()){
+            neuronState ns = {somMap[i].x,somMap[i].y,static_cast<float>(tmp),1};
+            if(somMap[i].isPossible == true){
+                ns.possible = 1;
+            }else{
+                ns.possible = 0;
+            }
 
-        //     cout << "omegaの値" << endl;
-        //     for(auto val : omega){
-        //         cout << val << ",";
-        //     }
-        //     cout << endl;
-        //     std::cerr << "次元数を超えた値になっています" << endl;
-        //     abort();
-        // }
-
-
-        file << tmp << "," << somMap[i].isPossible << "\n";
+            outFile.write(reinterpret_cast<const char*>(&ns),sizeof(neuronState));
+        }
     }
-    file.close();
+    outFile.close();
 }
