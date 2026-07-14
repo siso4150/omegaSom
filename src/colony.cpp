@@ -43,7 +43,7 @@ void Colony::run(){
 
     for(int gen = 0; gen < cfgPtr->acoCfg.acoGenNum; gen++){
         if(gen % 10 == 0){
-            cout << "第" << gen+1 << "世代\n";
+            cout << "aco : "<< gen+1 << "世代目\n";
         }
         int cnt = 0;
         

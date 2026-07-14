@@ -8,37 +8,56 @@ import os
 import re
 
 # --- 設定 ---
-csvDir = "/home/sakai/cppfile/omegaSOM/output"
+csvDir = "/home/sakai/cppfile/som_csv/sample"
 
-mapHeight = 794
-mapWidth = 823
+mapHeight = 483
+mapWidth = 884
 weightIdx = 2
 isPossibleIdx = 3 # isPossible列のインデックス
 
 def loadRoadData(filePath):
+    # C++側の構造体とメモリレイアウトを完全に一致させる
+    # 'i4': 4バイト整数(int32_t), 'f4': 4バイト浮動小数点数(float)
+    dataType = np.dtype([
+        ('x', 'i4'),
+        ('y', 'i4'),
+        ('riskSum', 'f4'),
+        ('possible', 'i4')
+    ])
+    
+    # グリッドの初期化（mapHeight, mapWidth はグローバル変数を想定）
     grid = np.full((mapHeight, mapWidth), np.nan)
+    
     try:
-        with open(filePath, 'r') as f:
-            reader = csv.reader(f)
-            next(reader)  # ヘッダー飛ばし
-            for row in reader:
-                if not row: continue
-                x, y = int(row[0]), int(row[1])
-                val = float(row[weightIdx])
-                isPossible = int(row[isPossibleIdx]) # 通行可能フラグの読み込み
-                
-                if 0 <= x < mapWidth and 0 <= y < mapHeight:
-                    if isPossible == 0:
-                        grid[y, x] = -1.0  # 通行不可の場合は vmin (0) より小さい値を入れる
-                    else:
-                        grid[y, x] = val
+        # バイナリデータを一括読み込み
+        roadData = np.fromfile(filePath, dtype=dataType)
+        
+        # マップの範囲内に収まっているデータのみを抽出
+        validMask = (roadData['x'] >= 0) & (roadData['x'] < mapWidth) & \
+                    (roadData['y'] >= 0) & (roadData['y'] < mapHeight)
+        
+        validData = roadData[validMask]
+        
+        # 各要素の配列を抽出
+        xCoords = validData['x']
+        yCoords = validData['y']
+        riskSums = validData['riskSum']
+        isPossibleFlags = validData['possible']
+        
+        # isPossible が 0 の場合は -1.0、そうでない場合は riskSum を適用
+        finalVals = np.where(isPossibleFlags == 0, -1.0, riskSums)
+        
+        # グリッドの該当座標へ一括代入
+        grid[yCoords, xCoords] = finalVals
+        
     except Exception as e:
         print(f"Error loading {filePath}: {e}")
         return None
+        
     return grid
 
 # ファイルリスト取得
-files = sorted(glob.glob(os.path.join(csvDir, "neuron_gen_*.csv")))
+files = sorted(glob.glob(os.path.join(csvDir, "neuron_gen_*.bin")))
 
 fig, ax = plt.subplots(figsize=(12, 8))
 

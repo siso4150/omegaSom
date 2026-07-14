@@ -53,7 +53,7 @@ int main(int argc, char* argv[]){
     int csvCnt = 1;
     for(int time = 1; time <= cfg.somIterMax; time++){
         if(time%10==0){
-            std::cout << time << "世代目\n";
+            std::cout << "som :  "<< time << "世代目\n";
         }
         
         

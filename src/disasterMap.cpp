@@ -107,7 +107,7 @@ void DisasterMap::loadDynamicData(){
 void DisasterMap::combineData(){//静的データと動的データをくっつける
     for(int i = 0; i < disasterMap.size();i++){
         for(int j = 0; j < 3; j++){
-            disasterMap[i].vec.push_back(allWeather[0][i][j]);
+            disasterMap[i].vec.push_back(allWeather.at(0).at(i).at(j));
         }
     }
 }
