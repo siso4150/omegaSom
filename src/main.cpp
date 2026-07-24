@@ -9,6 +9,8 @@
 #include <iostream>
 #include <filesystem>
 
+#define DEBUG
+
 
 using namespace std;
 using json = nlohmann::json;
@@ -52,14 +54,19 @@ int main(int argc, char* argv[]){
 
     int csvCnt = 1;
     for(int time = 1; time <= cfg.somIterMax; time++){
-        if(time%10==0){
-            std::cout << "som :  "<< time << "世代目\n";
+
+        #ifdef DEBUG
+            cout << "som :  "<< time << "世代目\n";
+        #endif // DEBUG
+
+        if(cfg.trainMode == 0){//Modeが0ならバッチ、1ならオンライン
+            som.batchLearn(time);
+        }else{
+            som.onlineLearn(time);
         }
         
-        
-        som.onlineLearn(time);
         som.saveNeuronState(time);
-
+        
         if(time % cfg.somIterNum == 0 && csvCnt < 24){
 
             colony.run();

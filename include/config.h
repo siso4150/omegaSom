@@ -59,6 +59,10 @@ struct config{
 
     int somSeed;
 
+    int trainMode;
+
+    int batchSize;
+
     AcoConfig acoCfg;
 };
 
@@ -85,6 +89,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,
     goalX,
     goalY,
     somSeed,
+    trainMode,
+    batchSize,
     acoCfg)
 
 

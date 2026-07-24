@@ -1,5 +1,7 @@
 #include "omegaSom.h"
 
+#define DEBUG
+
 using namespace std;
 
 OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disasterMap(dMap){
@@ -29,6 +31,9 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
 
             neuron.isPossible = true;
 
+            neuron.inflDenominator = 0.0;
+            neuron.inflNumerator.assign(cfg.dimensionNum,0.0);
+
             somMap.push_back(move(neuron));
         }
     }
@@ -40,6 +45,8 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
     omega.assign(cfg.dimensionNum,initialWeight);
     density.assign(cfg.dimensionNum,0);
     runningSum.assign(cfg.somWindowSize,0);
+
+    BMUIdxes.assign(disasterMap.size(),0);
 
     for(int n = 0; n < cfg.dimensionNum; n++){
         omegaHistery.push_back(vector<double>(cfg.somWindowSize,0.0));
@@ -64,7 +71,7 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
     resetLocalIter();
 }
 
-void OmegaSom::onlineLearn(int t){
+void OmegaSom::onlineLearn(int t){//オンライン学習
     //入力データをランダムに一つ選ぶ
     uniform_int_distribution<int> dist(0,disasterMap.size()-1);
     int inputIdx = dist(gen);
@@ -90,11 +97,91 @@ void OmegaSom::onlineLearn(int t){
 }
 
 void OmegaSom::batchLearn(int t){
-    for(int j = 0; j < disasterMap.size();j++){
-        int BMUIdx = findBMU(j);
 
+    #ifdef DEBUG
+    double startTime = omp_get_wtime();
+    #endif 
+
+    //一旦全ての入力データのBMUを計算する
+    #pragma omp parallel for
+    for(int k = 0; k < static_cast<int>(disasterMap.size()); k++){
+        BMUIdxes[k] = findBMU(k);
     }
 
+    #ifdef DEBUG
+    cout << "BMU計算完了\n";
+    #endif 
+
+    //各ニューロン
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(somMap.size()); i++){
+        
+        //初期化
+        somMap[i].inflDenominator = 0.0;
+        for(int n = 0; n < cfg.dimensionNum; n++){
+            somMap[i].inflNumerator[n] = 0.0;
+        }
+
+        //各入力データで影響度を計算する
+        for(int j = 0; j < static_cast<int>(disasterMap.size());j++){
+
+            double nb = neighborhoodFunction(BMUIdxes[j],i);
+            if(nb < 0.046) continue;
+            somMap[i].inflDenominator = nb;
+
+            for(int n = 0; n < cfg.dimensionNum; n++){
+                somMap[i].inflNumerator[n] += nb*disasterMap[j].vec[n];
+            }
+        }
+    }
+
+    #ifdef DEBUG
+    double endTime = omp_get_wtime();
+    double time = endTime - startTime;
+    cout << "バッチ学習時間:" << time << "\n";
+    #endif
+
+    #ifdef DEBUG
+    cout << "影響量計算完了\n";
+    #endif 
+
+    batchAdapt(t);
+    
+    #ifdef DEBUG
+    cout << "影響量の更新完了\n";
+    #endif 
+
+    #ifdef DEBUG
+    startTime = omp_get_wtime();
+    #endif
+
+    batchUpdateOmega(t);
+
+    #ifdef DEBUG
+    endTime = omp_get_wtime();
+    time = endTime - startTime;
+    cout << "omega更新時間:" << time << "\n";
+    #endif
+
+    #ifdef DEBUG
+    cout << "次元重みの更新完了\n";
+    #endif 
+
+    updateAlphaNb();
+}
+
+
+
+void OmegaSom::batchAdapt(int t){
+    
+    #pragma omp parallel for
+    for(int i = 0; i < somMap.size(); i++){
+        if(somMap[i].inflDenominator > 0.0){
+            for(int k = 2; k < cfg.dimensionNum; k++){
+                somMap[i].weightVec[k] = somMap[i].inflNumerator[k] / somMap[i].inflDenominator;
+            }
+        }
+    }
 }
 
 int OmegaSom::findBMU(int inputIdx){
@@ -137,6 +224,7 @@ int OmegaSom::findBMU(int inputIdx){
             }
         }
     }
+
     return bmuIdx;
 }
 
@@ -183,7 +271,6 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
     //omega_nを求める
     for(int n = 0; n < cfg.dimensionNum; n++){
         
-        
         double tmp = 0;
         for(int i = 0; i < cfg.dimensionNum; i++){
             tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (beta - 1)));
@@ -204,6 +291,73 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         }
     }
 
+}
+
+void OmegaSom::batchUpdateOmega(int t){
+    //D_nを求める
+    fill(density.begin(),density.end(),0);
+
+    #pragma omp parallel
+    {
+        vector<double> d(cfg.dimensionNum,0.0);
+
+        #pragma omp for nowait
+        for(int j = 0; j < static_cast<int>(somMap.size()); j++){//ニューロンごとに
+            
+            for(int i = 0; i < static_cast<int>(disasterMap.size()); i++){//入力データのBMUの
+                double nb = neighborhoodFunction(BMUIdxes[i],j);
+                if(nb < 0.046)continue;
+
+                for(int n = 0; n < cfg.dimensionNum; n++){
+                    d[n] += nb * (disasterMap[i].vec[n] - somMap[j].weightVec[n]) * (disasterMap[i].vec[n] - somMap[j].weightVec[n]);
+                }
+            }
+        }
+
+        #pragma omp critical
+        {
+            for(int n = 0; n < cfg.dimensionNum; n++){
+                density[n] += d[n];
+            }
+        }
+    }
+
+    //omega_nを求める
+    for(int n = 0; n < cfg.dimensionNum; n++){
+        
+        double tmp = 0;
+        for(int i = 0; i < cfg.dimensionNum; i++){
+            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (beta - 1)));
+        }
+        double newOmega = pow(tmp,-1);
+        runningSum[n] -= omegaHistery[n][t % cfg.somWindowSize];
+        omegaHistery[n][t % cfg.somWindowSize] = newOmega;
+        runningSum[n] += newOmega;
+        
+        omega[n] = runningSum[n] / cfg.somWindowSize;
+    }
+    
+    //1時刻で1000世代を超えるとnan値が出現する
+    for(int n = 0; n < cfg.dimensionNum; n++) {
+        if(isnan(omegaHistery[n][t % cfg.somWindowSize])){
+        cerr << "nan値検出 omegaSom.cpp:296" << "\n";
+        abort();
+        }
+    }
+}
+
+//セミバッチの実装
+void OmegaSom::semiBatchLearn(int time){
+
+}
+
+void OmegaSom::semiBatchAdapt(int time){
+
+}
+
+void OmegaSom::semiBatchUpdateOmega(int time){
+    vector<int> dataIdxes(cfg.batchSize,0);
+    std::iota(dataIdxes.begin(),dataIdxes.end(),0);
 }
 
 void OmegaSom::updateAlphaNb(){//指数関数での減少スケジュール
