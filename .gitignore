@@ -3,3 +3,4 @@ degug/obj/*.o
 output/*.csv
 output/route/*.csv
 csv/*.csv
+logs/*.txt

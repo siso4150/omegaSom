@@ -59,6 +59,7 @@ private:
 
     unsigned int seed = 50;
     std::mt19937 gen;
+    std::mt19937 semiBatchRandEngine;
 
     int localIteration;
 

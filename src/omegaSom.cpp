@@ -7,8 +7,9 @@ using namespace std;
 OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disasterMap(dMap){
     gen.seed(cfg.somSeed);
     uniform_real_distribution<double> rdist(0,1);
-    
 
+    semiBatchRandEngine.seed(cfg.semiBatchSeed);
+    
     //メモリ領域確保
     somMap.reserve(disasterMap.size());
 
@@ -127,7 +128,7 @@ void OmegaSom::batchLearn(int t){
 
             double nb = neighborhoodFunction(BMUIdxes[j],i);
             if(nb < 0.046) continue;
-            somMap[i].inflDenominator = nb;
+            somMap[i].inflDenominator += nb;
 
             for(int n = 0; n < cfg.dimensionNum; n++){
                 somMap[i].inflNumerator[n] += nb*disasterMap[j].vec[n];
@@ -349,15 +350,118 @@ void OmegaSom::batchUpdateOmega(int t){
 //セミバッチの実装
 void OmegaSom::semiBatchLearn(int time){
 
+    #ifdef DEBUG
+    double startTime = omp_get_wtime();
+    #endif 
+
+    vector<int> dataIdxes(disasterMap.size(),0);
+    std::iota(dataIdxes.begin(),dataIdxes.end(),0);
+
+    std::shuffle(dataIdxes.begin(),dataIdxes.end(),semiBatchRandEngine);
+
+    #pragma omp parallel for
+    for(int i = 0; i < cfg.batchSize; i++){
+        int idx = dataIdxes[i];
+        BMUIdxes[i] = findBMU(idx);
+    }
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(somMap.size()); i++){
+        
+        //初期化
+        somMap[i].inflDenominator = 0.0;
+        somMap[i].inflNumerator.assign(cfg.dimensionNum,0.0);
+
+        //セミバッチの入力データから探索する
+        for(int j = 0; j < cfg.batchSize;j++){
+            double nb = neighborhoodFunction(BMUIdxes[j],i);
+            if(nb < 0.046) continue;
+            somMap[i].inflDenominator += nb;
+            
+            int actualIdx = BMUIdxes[j];
+            for(int n = 0; n < cfg.dimensionNum; n++){
+                somMap[i].inflNumerator[n] += nb*disasterMap[actualIdx].vec[n];
+            }
+        }
+    }
+
+    semiBatchAdapt(time);
+    semiBatchUpdateOmega(time);
+    updateAlphaNb();
+
+    #ifdef DEBUG
+    double endTime = omp_get_wtime();
+    double betTime = endTime - startTime;
+    cout << "セミバッチ学習時間:" << betTime << "\n";
+    #endif
 }
 
 void OmegaSom::semiBatchAdapt(int time){
-
+    
+    #pragma omp parallel for
+    for(int i = 0; i < somMap.size(); i++){
+        if(somMap[i].inflDenominator > 0.0){
+            for(int k = 2; k < cfg.dimensionNum; k++){
+                double tar = somMap[i].inflNumerator[k] / somMap[i].inflDenominator;
+                somMap[i].weightVec[k] = (1.0 - alpha) * somMap[i].weightVec[k] + (alpha * tar);
+                
+            }
+        }
+    }
 }
 
 void OmegaSom::semiBatchUpdateOmega(int time){
-    vector<int> dataIdxes(cfg.batchSize,0);
-    std::iota(dataIdxes.begin(),dataIdxes.end(),0);
+    //まず各D_nを求める
+    fill(density.begin(),density.end(),0);
+
+    #pragma omp parallel
+    {
+        vector<double> d(cfg.dimensionNum,0.0);
+
+        #pragma omp for nowait
+        for(int j = 0; j < static_cast<int>(somMap.size()); j++){
+            
+            for(int i = 0; i < cfg.batchSize; i++){
+                
+                double nb = neighborhoodFunction(BMUIdxes[i],j);
+                if(nb < 0.046)continue;
+
+                int actualIdx = BMUIdxes[j];
+                for(int n = 0; n < cfg.dimensionNum; n++){
+                    d[n] += nb * (disasterMap[i].vec[n] - somMap[actualIdx].weightVec[n]) * (disasterMap[i].vec[n] - somMap[actualIdx].weightVec[n]);
+                }
+            }
+        }
+        #pragma omp critical
+        {
+            for(int n = 0; n < cfg.dimensionNum; n++){
+                density[n] += d[n];
+            }
+        }
+    }
+
+    //omega_nを求める
+    for(int n = 0; n < cfg.dimensionNum; n++){
+        
+        double tmp = 0;
+        for(int i = 0; i < cfg.dimensionNum; i++){
+            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (beta - 1)));
+        }
+        double newOmega = pow(tmp,-1);
+        runningSum[n] -= omegaHistery[n][time % cfg.somWindowSize];
+        omegaHistery[n][time % cfg.somWindowSize] = newOmega;
+        runningSum[n] += newOmega;
+        
+        omega[n] = runningSum[n] / cfg.somWindowSize;
+    }
+    
+    //1時刻で1000世代を超えるとnan値が出現する
+    for(int n = 0; n < cfg.dimensionNum; n++) {
+        if(isnan(omegaHistery[n][time % cfg.somWindowSize])){
+        cerr << "nan値検出 omegaSom.cpp:446" << "\n";
+        abort();
+        }
+    }
 }
 
 void OmegaSom::updateAlphaNb(){//指数関数での減少スケジュール

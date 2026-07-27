@@ -59,10 +59,12 @@ int main(int argc, char* argv[]){
             cout << "som :  "<< time << "世代目\n";
         #endif // DEBUG
 
-        if(cfg.trainMode == 0){//Modeが0ならバッチ、1ならオンライン
+        if(cfg.trainMode == 0){//Modeが0ならバッチ、1ならオンライン、2ならセミバッチ
             som.batchLearn(time);
-        }else{
+        }else if(cfg.trainMode == 1){
             som.onlineLearn(time);
+        }else if(cfg.trainMode == 2){
+            som.semiBatchLearn(time);
         }
         
         som.saveNeuronState(time);
