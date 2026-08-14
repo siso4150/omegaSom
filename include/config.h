@@ -31,6 +31,7 @@ struct config{
     int dimensionNum;
     int staticDimensionNum;
     int dynamicDimensionNum;
+    int totalTime;
     int mapRow;
     int mapCol;
 
@@ -71,6 +72,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(config,
     dimensionNum,
     staticDimensionNum,
     dynamicDimensionNum,
+    totalTime,
     mapRow,
     mapCol,
     somInitAlpha,

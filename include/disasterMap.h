@@ -25,7 +25,6 @@ class DisasterMap{
 private:
     vector<MapCell> disasterMap;
     vector<vector<vector<double>>> allWeather;
-    int totalTime = 2;
     const config& cfg;
     double normalize(double x,double xmin,double xmax){return (x-xmin) / (xmax-xmin);};
 

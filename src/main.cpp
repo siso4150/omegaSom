@@ -9,7 +9,7 @@
 #include <iostream>
 #include <filesystem>
 
-#define DEBUG
+//#define DEBUG
 
 
 using namespace std;

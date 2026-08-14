@@ -1,8 +1,7 @@
 #include "disasterMap.h"
 
 DisasterMap::DisasterMap(const config& cfg) : cfg(cfg){
-    totalTime = 24;
-    allWeather.resize(totalTime);
+    allWeather.resize(cfg.totalTime);
 }
 
 void DisasterMap::loadFromCsv(const string& filePath){
@@ -62,7 +61,7 @@ void DisasterMap::loadFromCsv(const string& filePath){
 void DisasterMap::loadDynamicData(){
     int pointNum = disasterMap.size();
     
-    for(int t = 0; t < totalTime; t++){
+    for(int t = 0; t < cfg.totalTime; t++){
         string fileName = "/home/sakai/cppfile/omegaSOM/csv/weather_" + to_string(t) + ".csv";
 
         ifstream ifs(fileName);
