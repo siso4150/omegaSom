@@ -100,5 +100,6 @@ public:
     void setIsPossible(int idx,bool possible){
         somMap.at(idx).isPossible = possible;
     }
+    
 
 };

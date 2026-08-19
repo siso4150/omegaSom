@@ -34,6 +34,7 @@ private:
         s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
         s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
         s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
+        s.erase(std::remove(s.begin(), s.end(),'\"'),s.end());
         return s;
     }
 

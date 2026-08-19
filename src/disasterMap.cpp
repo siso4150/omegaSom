@@ -23,14 +23,14 @@ void DisasterMap::loadFromCsv(const string& filePath){
         MapCell cell;
 
         //道路かどうか
+        //非道路がNULL（空白)から０に変更
         getline(ss, item, ',');
         item = trim(item);
-        cell.isRoad = !item.empty();
-        double roadWidth;
-        if(!item.empty()){
-            roadWidth = stoi(item);
+        double roadWidth = stod(item);
+        if(roadWidth == 0){
+            cell.isRoad = false;
         }else{
-            roadWidth = 0;
+            cell.isRoad = true;
         }
 
         //x座標
@@ -74,28 +74,32 @@ void DisasterMap::loadDynamicData(){
 
         string line;
         getline(ifs,line);
+        
 
         allWeather[t].reserve(pointNum);
 
         while(getline(ifs,line)){
             stringstream ss(line);
-            string rainStr, windStr, tempStr;
-            getline(ss, rainStr, ',');
-            getline(ss, windStr, ',');
-            getline(ss, tempStr, ',');
+            vector<double> dynamicRisks;
+            string itemStr;
+            while(getline(ss,itemStr,',')){
+                itemStr = trim(itemStr);
+                int num = stod(itemStr);
+                // if(num > 0){
+                //     cout << "存在する\n";
+                // }
+                dynamicRisks.push_back(stod(itemStr));
+            }
 
-            // vector<double> mesh;
-            // //小数点の情報は落ちてる
-            // mesh.push_back(std::stod(rainStr));
-            // mesh.push_back(std::stod(windStr));
-            // mesh.push_back(std::stod(tempStr));
+            allWeather[t].push_back(dynamicRisks);
 
-            // for(auto e : mesh){
-            //     cout << e <<  ",";
-            // }
-            // cout << endl;
+            // stringstream ss(line);
+            // string rainStr, windStr, tempStr;
+            // getline(ss, rainStr, ',');
+            // getline(ss, windStr, ',');
+            // getline(ss, tempStr, ',');
 
-            allWeather[t].push_back({std::stod(rainStr),std::stod(windStr),std::stod(tempStr)});
+            
         }
     }
 
@@ -105,7 +109,7 @@ void DisasterMap::loadDynamicData(){
 
 void DisasterMap::combineData(){//静的データと動的データをくっつける
     for(int i = 0; i < disasterMap.size();i++){
-        for(int j = 0; j < 3; j++){
+        for(int j = 0; j < cfg.dynamicDimensionNum; j++){
             disasterMap[i].vec.push_back(allWeather.at(0).at(i).at(j));
         }
     }

@@ -9,6 +9,9 @@ Ant::Ant(const config& cfg, int seed){
     visit.assign(cfg.mapRow,vector<int>(cfg.mapCol,0)); //visitのメモリ確保
     pathIdx.assign(cfg.mapRow,vector<int>(cfg.mapCol,-1));
     randomGen.seed(seed);
+
+
+    
 }
 
 void Ant::initAnt(){

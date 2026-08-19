@@ -67,7 +67,6 @@ OmegaSom::OmegaSom(const config& cfg,const vector<MapCell>& dMap): cfg(cfg),disa
 
     alpha = cfg.somInitAlpha;
     nbRadius = cfg.somInitNbRadius;
-    beta = 2;
     tau = 20;
     resetLocalIter();
 }
@@ -190,7 +189,8 @@ int OmegaSom::findBMU(int inputIdx){
     double bmuDist = std::numeric_limits<double>::max();
 
     for(int k = 0; k < cfg.dimensionNum; k++){
-        preCalcOmega[k] = pow(omega[k],beta);
+        double safeOmega = max(0.0,omega[k]);
+        preCalcOmega[k] = pow(safeOmega,cfg.somBeta);
     }
 
     //BMU探索の並列化
@@ -247,6 +247,9 @@ void OmegaSom::onlineAdapt(int BMUIdx,int inputVec){
 }
 
 double OmegaSom::neighborhoodFunction(int BMUIdx,int pVecIdx){
+    if(BMUIdx < 0 || pVecIdx < 0){
+        cout << "異常あり\n";
+    }
     double numeretor = (somMap[BMUIdx].x - somMap[pVecIdx].x) * (somMap[BMUIdx].x - somMap[pVecIdx].x) + (somMap[BMUIdx].y - somMap[pVecIdx].y) * (somMap[BMUIdx].y - somMap[pVecIdx].y);
     double denominator = 2 * nbRadius * nbRadius;
     double ret = exp(-1 * numeretor / denominator);
@@ -274,7 +277,7 @@ void OmegaSom::updateOmega(int BMUIdx,int inputIdx,int t){
         
         double tmp = 0;
         for(int i = 0; i < cfg.dimensionNum; i++){
-            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (beta - 1)));
+            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (cfg.somBeta - 1)));
         }
         double newOmega = pow(tmp,-1);
         runningSum[n] -= omegaHistery[n][t % cfg.somWindowSize];
@@ -328,7 +331,7 @@ void OmegaSom::batchUpdateOmega(int t){
         
         double tmp = 0;
         for(int i = 0; i < cfg.dimensionNum; i++){
-            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (beta - 1)));
+            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (cfg.somBeta - 1)));
         }
         double newOmega = pow(tmp,-1);
         runningSum[n] -= omegaHistery[n][t % cfg.somWindowSize];
@@ -445,7 +448,7 @@ void OmegaSom::semiBatchUpdateOmega(int time){
         
         double tmp = 0;
         for(int i = 0; i < cfg.dimensionNum; i++){
-            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (beta - 1)));
+            tmp += pow(((density[n] + 1e-6) / (density[i] + 1e-6)),((double)1 / (cfg.somBeta - (double)1)));
         }
         double newOmega = pow(tmp,-1);
         runningSum[n] -= omegaHistery[n][time % cfg.somWindowSize];

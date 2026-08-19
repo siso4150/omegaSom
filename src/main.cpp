@@ -9,7 +9,7 @@
 #include <iostream>
 #include <filesystem>
 
-//#define DEBUG
+#define DEBUG
 
 
 using namespace std;
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
         
         som.saveNeuronState(time);
         
-        if(time % cfg.somIterNum == 0 && csvCnt < 24){
+        if(time % cfg.somIterNum == 0 && csvCnt < cfg.totalTime){
 
             colony.run();
             
@@ -79,6 +79,7 @@ int main(int argc, char* argv[]){
             csvCnt++;
 
             som.resetLocalIter();
+            //som.resetOmega();
             //塞ぐ
             //hazardManager.randomRoadClose();
         }
