@@ -381,9 +381,9 @@ void OmegaSom::semiBatchLearn(int time){
             if(nb < 0.046) continue;
             somMap[i].inflDenominator += nb;
             
-            int actualIdx = BMUIdxes[j];
+            int actualDataIdx = dataIdxes[j];
             for(int n = 0; n < cfg.dimensionNum; n++){
-                somMap[i].inflNumerator[n] += nb*disasterMap[actualIdx].vec[n];
+                somMap[i].inflNumerator[n] += nb*disasterMap[actualDataIdx].vec[n];
             }
         }
     }
@@ -397,6 +397,11 @@ void OmegaSom::semiBatchLearn(int time){
     double betTime = endTime - startTime;
     cout << "セミバッチ学習時間:" << betTime << "\n";
     #endif
+
+    for(auto val : omega){
+        cout << val << " ";
+    }
+    cout << "\n";
 }
 
 void OmegaSom::semiBatchAdapt(int time){
@@ -415,7 +420,7 @@ void OmegaSom::semiBatchAdapt(int time){
 
 void OmegaSom::semiBatchUpdateOmega(int time){
     //まず各D_nを求める
-    fill(density.begin(),density.end(),0);
+    fill(density.begin(),density.end(),0.0);
 
     #pragma omp parallel
     {
@@ -429,9 +434,9 @@ void OmegaSom::semiBatchUpdateOmega(int time){
                 double nb = neighborhoodFunction(BMUIdxes[i],j);
                 if(nb < 0.046)continue;
 
-                int actualIdx = BMUIdxes[j];
                 for(int n = 0; n < cfg.dimensionNum; n++){
-                    d[n] += nb * (disasterMap[i].vec[n] - somMap[actualIdx].weightVec[n]) * (disasterMap[i].vec[n] - somMap[actualIdx].weightVec[n]);
+                    double diff = disasterMap[i].vec[n] - somMap[j].weightVec[n];
+                    d[n] += nb * diff * diff;
                 }
             }
         }
